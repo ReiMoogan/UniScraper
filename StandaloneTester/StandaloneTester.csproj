@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Dapper" Version="2.0.90" />
+      <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ScrapperCore\ScrapperCore.csproj" />
+    </ItemGroup>
+
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <Copy SourceFiles="..\config.json" DestinationFolder="$(OutDir)" />
+    </Target>
+
+</Project>
