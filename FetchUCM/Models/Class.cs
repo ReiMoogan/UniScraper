@@ -1,29 +1,24 @@
-using System;
 using Newtonsoft.Json;
 
 namespace FetchUCM.Models
 {
     public class Class
     {
-        public enum Activity { Lecture, Discussion, Lab, Fieldwork, Seminar, IndividualStudy, Tutorial, Studio, Practice }
-        [Flags] public enum Days : byte { Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday }
-        
-        // LECT, DISC, LAB, FLDW, SEM, INI, TUT, STDO, PRA
-        internal Class(short crn, string classID)
+        internal Class()
         {
             
         }
         
+        [JsonProperty("id")] public int Id { get; private set; }
+        [JsonProperty("term")] public string Term { get; private set; }
+        [JsonProperty("termDesc")] public string TermDescription { get; private set; }
+        [JsonProperty("partOfTerm")] public string PartOfTerm { get; private set; }
         // Why are they storing it as a string?
-        [JsonProperty("courseReferenceNumber")] public string CourseReferenceNumberRaw
-        {
-            set => CourseReferenceNumber = short.Parse(value);
-        }
-        public short CourseReferenceNumber { get; private set; }
+        [JsonProperty("courseReferenceNumber")] public string CourseReferenceNumberRaw { get; private set; }
+        public short CourseReferenceNumber => short.Parse(CourseReferenceNumberRaw);
         [JsonProperty("subject")] public string Subject { get; private set; }
         [JsonProperty("courseNumber")] public string CourseNumberRaw { get; private set; }
         [JsonProperty("sequenceNumber")] public string SequenceNumber { get; private set; }
-        
         public string CourseNumber
         {
             get => $"{Subject}-{CourseNumberRaw}-{SequenceNumber}";
@@ -35,25 +30,17 @@ namespace FetchUCM.Models
                 SequenceNumber = split[2];
             }
         }
-        
+        [JsonProperty("campusDescription")] public string CampusDescription { get; private set; }
+        [JsonProperty("scheduleTypeDescription")] public string ScheduleTypeDescription { get; private set; }
         [JsonProperty("courseTitle")] public string CourseTitle { get; private set; }
-        [JsonProperty("creditHours")] public byte Units { get; private set; }
-        [JsonProperty("scheduleTypeDescription")] public string TypeRaw { get; private set; }
-        public Activity Type { get; private set; }
-        public TimeSpan StartTime { get; private set; }
-        public TimeSpan EndTime { get; private set; }
-        public DateTime StartDate { get; private set; }
-        public DateTime EndDate { get; private set; }
-        
-        // Holds both date and time, or neither (null).
-        public DateTime Exam { get; private set; }
-        
-        public short MaxEnrollment { get; private set; }
-        public short SeatsAvailable { get; private set; }
-        public short ActiveEnrollment { get; private set; }
-        
-        public short WaitCapacity { get; private set; }
-        public short WaitCount { get; private set; }
-        public short WaitAvailable { get; private set; }
+        [JsonProperty("creditHours")] public byte CreditHours { get; private set; }
+        [JsonProperty("maximumEnrollment")] public short MaximumEnrollment { get; private set; }
+        [JsonProperty("enrollment")] public short Enrollment { get; private set; }
+        [JsonProperty("seatsAvailable")] public short SeatsAvailable { get; private set; }
+        [JsonProperty("waitCapacity")] public short WaitCapacity { get; private set; }
+        [JsonProperty("waitCount")] public short WaitCount { get; private set; }
+        [JsonProperty("waitAvailable")] public short WaitAvailable { get; private set; }
+        [JsonProperty("faculty")] public Professor[] Faculty { get; private set; }
+        [JsonProperty("meetingsFaculty")] public Meeting[] MeetingsFaculty { get; private set; }
     }
 }

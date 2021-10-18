@@ -55,8 +55,8 @@ namespace FetchRateMyProf.Models
                 if (page == null)
                     throw new InvalidOperationException("Did not get a JSON response from RateMyProfessors!");
                 remaining = page.Remaining;
-                foreach (var professor in page.Items)
-                    yield return professor;
+                foreach (var item in page.Items)
+                    yield return item;
                 ++pageNum;
             }
         }
