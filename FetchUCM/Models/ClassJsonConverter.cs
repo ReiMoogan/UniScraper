@@ -13,7 +13,9 @@ namespace FetchUCM.Models
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.Value == null)
-                return 0;
+                return (byte)0;
+            if (objectType == typeof(byte))
+                return Convert.ToByte(reader.Value);
             if (objectType == typeof(int))
                 return Convert.ToInt32(reader.Value);
             if (objectType == typeof(short))
@@ -25,7 +27,7 @@ namespace FetchUCM.Models
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(int) || objectType == typeof(short) || objectType == typeof(float);
+            return objectType == typeof(int) || objectType == typeof(short) || objectType == typeof(float) || objectType == typeof(byte);
         }
     }
 }

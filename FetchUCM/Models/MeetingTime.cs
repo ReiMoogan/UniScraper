@@ -10,10 +10,10 @@ namespace FetchUCM.Models
             
         }
         
-        [JsonProperty("beginTime")] public string BeginTimeRaw { get; private set; }
-        [JsonProperty("endTime")] public string EndTimeRaw { get; private set; }
-        [JsonProperty("startDate")] public string BeginDateRaw { get; private set; }
-        [JsonProperty("endDate")] public string EndDateRaw { get; private set; }
+        [JsonProperty("beginTime")] public string BeginTime { get; private set; }
+        [JsonProperty("endTime")] public string EndTime { get; private set; }
+        [JsonProperty("startDate")] public string BeginDate { get; private set; }
+        [JsonProperty("endDate")] public string EndDate { get; private set; }
         
         [JsonProperty("building")] public string Building { get; private set; }
         [JsonProperty("buildingDescription")] public string BuildingDescription { get; private set; }

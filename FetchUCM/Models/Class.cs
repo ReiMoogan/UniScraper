@@ -10,7 +10,8 @@ namespace FetchUCM.Models
         }
         
         [JsonProperty("id")] public int Id { get; private set; }
-        [JsonProperty("term")] public string Term { get; private set; }
+        [JsonProperty("term")] public string TermRaw { get; private set; }
+        public int Term => int.Parse(TermRaw);
         [JsonProperty("termDesc")] public string TermDescription { get; private set; }
         [JsonProperty("partOfTerm")] public string PartOfTerm { get; private set; }
         // Why are they storing it as a string?

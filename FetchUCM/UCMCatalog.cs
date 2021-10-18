@@ -16,12 +16,11 @@ namespace FetchUCM
             _client = client ?? new HttpClient();
         }
         
-        public async IAsyncEnumerable<Class> GetAllClasses(int term, string jsessionid)
+        public async IAsyncEnumerable<Class> GetAllClasses(int term, string cookie)
         {
             if (_client.DefaultRequestHeaders.Contains("cookie"))
                 _client.DefaultRequestHeaders.Remove("cookie");
-            _client.DefaultRequestHeaders.Add("cookie", $"JSESSIONID={jsessionid}");
-            
+            _client.DefaultRequestHeaders.Add("cookie", $"{cookie}");
             const int maxAttempts = 20;
             var pageOffset = 0;
             var sectionsFetchedCount = 1;
@@ -44,10 +43,8 @@ namespace FetchUCM
                     {
                         if (attempt == maxAttempts - 1)
                         {
-                            await Console.Error.WriteLineAsync(
+                            throw new TimeoutException(
                                 $"Failed to get class data after {maxAttempts} attempts! Is the JSESSIONID valid?");
-                            sectionsFetchedCount = pageOffset; // Exit while loop, jump to the end of method.
-                            break;
                         }
 
                         await Task.Delay(750); // Ugh, this API sucks.
