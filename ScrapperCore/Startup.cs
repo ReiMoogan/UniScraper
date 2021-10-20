@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ScrapperCore.Utilities;
 
 namespace ScrapperCore
 {
@@ -13,6 +14,7 @@ namespace ScrapperCore
         {
             services.AddControllers();
             services.AddHttpClient();
+            services.AddSingleton(ScrapperConfig.Load());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
