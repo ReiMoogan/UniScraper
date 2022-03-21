@@ -31,7 +31,7 @@ namespace ScrapperCore.Controllers.View
         {
             if (!Directory.Exists(folder))
             {
-                _logger.LogWarning($"The folder {folder} does not exist; the router cannot handle this!");
+                _logger.LogWarning("The folder {Folder} does not exist; the router cannot handle this!", folder);
                 return;
             }
             var files = Directory.EnumerateFiles(folder);
@@ -42,7 +42,7 @@ namespace ScrapperCore.Controllers.View
                 var value = $"{file}".Replace('\\', '/');
                 var success = Router.TryAdd(key, value);
                 if (!success)
-                    _logger.LogWarning($"Router found a duplicate route for {key}:\n- Old: {Router[key]}\n- New: {value}");
+                    _logger.LogWarning("Router found a duplicate route for {Key}:\n- Old: {RouterValue}\n- New: {Value}", key, Router[key], value);
             }
             var directories = Directory.EnumerateDirectories(folder);
             foreach (var directory in directories)
@@ -166,7 +166,7 @@ namespace ScrapperCore.Controllers.View
             }
             catch (JsonException e)
             {
-                _logger.Log(LogLevel.Error, $"Failed to parse JSON!\n{e}");
+                _logger.Log(LogLevel.Error, "Failed to parse JSON!\n{@Exception}", e);
                 return (TemplateCode.Fail, "");
             }
         }

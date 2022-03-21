@@ -8,7 +8,7 @@ namespace ScrapperCore.Controllers.View
     [Route("/{**page}")]
     public class MainController : HTMLController
     {
-        public MainController(ILogger<HTMLController> logger, ScrapperConfig config) : base(logger, config)
+        public MainController(ILogger<MainController> logger, ScrapperConfig config) : base(logger, config)
         {
             
         }

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using FastMember;
 using FetchRateMyProf;
 using FetchUCM;
+using FetchUCM.Models;
 using ScrapperCore.Utilities;
 
 namespace StandaloneTester
@@ -13,13 +16,11 @@ namespace StandaloneTester
     {
         private static async Task Main()
         {
-            Console.WriteLine("Please put a cookie with session data.");
-            var jsessionid = Console.ReadLine();
             var config = ScrapperConfig.Load().Verify();
             await using var connection = new SqlConnection(config.SqlConnection);
             Console.WriteLine("Opening database connection...");
             await connection.OpenAsync();
-            await UpdateClasses(connection, jsessionid);
+            await UpdateClasses(connection);
             await UpdateProfessors(connection);
             Console.WriteLine("Closing database connection...");
             await connection.CloseAsync();
@@ -34,31 +35,107 @@ namespace StandaloneTester
             var count = 0;
             await foreach (var professor in uni.GetAllProfessors())
             {
-                var result = await connection.ExecuteAsync(
-                   "UPDATE UniScraper.UCM.professor SET rmp_id = @RMPID, middle_name = @MiddleName, department = @Department, num_ratings = @NumRatings, rating = @OverallRating WHERE REPLACE(REPLACE(first_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@FirstName, ' ', ''), '-', '') AND REPLACE(REPLACE(last_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@LastName, ' ', ''), '-', '');",
-                    new { RMPID = professor.Id, FirstName = $"%{professor.FirstName}%", LastName = $"%{professor.LastName}%", professor.MiddleName, professor.Department, professor.NumRatings, professor.OverallRating });
-                if (result == 0)
-                    Console.WriteLine($"Could not find {professor.FirstName}, {professor.MiddleName}, {professor.LastName} in the database...");
-                else
-                    ++count;
+                try
+                {
+                    var result = await connection.ExecuteAsync(
+                        "UPDATE UniScraper.UCM.professor SET rmp_id = @RMPID, middle_name = @MiddleName, department = @Department, num_ratings = @NumRatings, rating = @OverallRating WHERE REPLACE(REPLACE(first_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@FirstName, ' ', ''), '-', '') AND REPLACE(REPLACE(last_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@LastName, ' ', ''), '-', '');",
+                        new
+                        {
+                            RMPID = professor.Id, FirstName = $"%{professor.FirstName}%",
+                            LastName = $"%{professor.LastName}%", professor.MiddleName, professor.Department,
+                            professor.NumRatings, professor.OverallRating
+                        });
+                    
+                    if (result == 0)
+                        Console.WriteLine($"Could not find {professor.FirstName}, {professor.MiddleName}, {professor.LastName} in the database...");
+                    else
+                        ++count;
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Failed query for {professor.FirstName} {professor.LastName}");
+                    throw;
+                }
             }
 
             await connection.ExecuteAsync(
                 "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'professor';");
             Console.WriteLine($"Updated {count} professors!");
         }
+
+        private static async Task CreateTemporaryTables(IDbConnection connection)
+        {
+            await connection.ExecuteAsync(
+                "SELECT TOP 0 * INTO #class FROM [UniScraper].[UCM].[class]; SELECT TOP 0 * INTO #faculty FROM [UniScraper].[UCM].[faculty];SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];SELECT TOP 0 * INTO #professor FROM [UniScraper].[UCM].[professor];");
+        }
         
-        private static async Task UpdateClasses(IDbConnection connection, string cookie)
+        private static async Task DeleteTemporaryTables(IDbConnection connection)
+        {
+            await connection.ExecuteAsync(
+                "DROP TABLE #class; DROP TABLE #faculty; DROP TABLE #meeting; DROP TABLE #professor;");
+        }
+
+        private static void MapSql(DataTable table, SqlBulkCopy copier)
+        {
+            foreach (var col in table.Columns)
+            {
+                var name = ((DataColumn) col).ColumnName;
+                var snake = string.Concat(name.Select((x, i) =>
+                    i > 0 && char.IsUpper(x) && !char.IsUpper(name[i - 1]) ? $"_{x}" : x.ToString())).ToLower();
+                copier.ColumnMappings.Add(name, snake);
+            }
+        }
+        
+        private static async Task UpdateClasses(SqlConnection connection)
         {
             Console.WriteLine("Updating classes...");
             var catalog = new UCMCatalog();
             var term = (await catalog.GetAllTerms())[0].Code;
             Console.WriteLine($"Reading from term {term}");
-            var countClasses = 0;
-            var countProfessors = 0;
-            var countMeetings = 0;
 
-            await foreach (var item in catalog.GetAllClasses(term, cookie))
+            var everything = await catalog.GetAllClasses(term).ToListAsync();
+            var classes = everything.Select(o => (IDBClass) o);
+            var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor) o);
+            var faculty = everything.SelectMany(o =>
+                o.Faculty.Select(p => new Faculty { ProfessorId = p.BannerId, ClassId = o.Id }));
+            var meetings = everything.SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.Id, p.Time)));
+            var classTable = new DataTable();
+            var professorTable = new DataTable();
+            var facultyTable = new DataTable();
+            var meetingTable = new DataTable();
+            
+            await using (var reader = ObjectReader.Create(classes)) {
+                classTable.Load(reader);
+            }
+            await using (var reader = ObjectReader.Create(professors)) {
+                professorTable.Load(reader);
+            }
+            await using (var reader = ObjectReader.Create(faculty)) {
+                facultyTable.Load(reader);
+            }
+            await using (var reader = ObjectReader.Create(meetings)) {
+                meetingTable.Load(reader);
+            }
+
+            await CreateTemporaryTables(connection);
+            using (var copier = new SqlBulkCopy(connection))
+            {
+                copier.DestinationTableName = "#class";
+                MapSql(classTable, copier);
+                await copier.WriteToServerAsync(classTable);
+                copier.DestinationTableName = "#professor";
+                MapSql(professorTable, copier);
+                await copier.WriteToServerAsync(professorTable);
+                copier.DestinationTableName = "#faculty";
+                MapSql(facultyTable, copier);
+                await copier.WriteToServerAsync(facultyTable);
+                copier.DestinationTableName = "#meeting";
+                MapSql(meetingTable, copier);
+                await copier.WriteToServerAsync(meetingTable);
+            }
+
+            /*
+            await foreach (var item in catalog.GetAllClasses(term))
             {
                 await connection.ExecuteAsync(
                     "MERGE INTO UniScraper.UCM.class WITH (HOLDLOCK) AS Target " +
@@ -110,11 +187,11 @@ namespace StandaloneTester
                 }
                 
                 ++countClasses;
-            }
+            }*/
 
             await connection.ExecuteAsync(
                 "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'class';");
-            Console.WriteLine($"Updated {countClasses} classes, {countProfessors} professors, and {countMeetings} meetings!");
+            Console.WriteLine($"Updated {classTable.Rows.Count} classes, {professorTable.Rows.Count} professors, and {meetingTable.Rows.Count} meetings!");
         }
     }
 }

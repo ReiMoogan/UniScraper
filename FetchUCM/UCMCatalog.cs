@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FetchUCM.Models;
@@ -9,21 +10,42 @@ namespace FetchUCM
 {
     public class UCMCatalog
     {
+        private static readonly HttpClient Client;
+        private static readonly CookieContainer Cookies;
         private readonly HttpClient _client;
+
+        static UCMCatalog()
+        {
+            Cookies = new CookieContainer();
+            var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = true,
+                UseCookies = true,
+                CookieContainer = Cookies
+            };
+            Client = new HttpClient(handler);
+            Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36");
+        }
         
         public UCMCatalog(HttpClient client = null)
         {
-            _client = client ?? new HttpClient();
+            _client = client ?? Client;
+        }
+
+        private async Task GetCookie(int term)
+        {
+            await Client.GetAsync(
+                $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/term/search?mode=courseSearch&term={term}&studyPath=&studyPathText=&startDatepicker=&endDatepicker=");
+            await Client.GetAsync(
+                "https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/courseSearch/courseSearch");
         }
         
-        public async IAsyncEnumerable<Class> GetAllClasses(int term, string cookie)
+        public async IAsyncEnumerable<Class> GetAllClasses(int term)
         {
-            if (_client.DefaultRequestHeaders.Contains("cookie"))
-                _client.DefaultRequestHeaders.Remove("cookie");
-            _client.DefaultRequestHeaders.Add("cookie", $"{cookie}");
-            const int maxAttempts = 20;
+            const int maxAttempts = 5;
             var pageOffset = 0;
             var sectionsFetchedCount = 1;
+            await GetCookie(term);
 
             while (pageOffset < sectionsFetchedCount)
             {
@@ -50,7 +72,6 @@ namespace FetchUCM
                         await Task.Delay(750); // Ugh, this API sucks.
                         continue; // Run to next attempt, do not try to process null.
                     }
-
                     sectionsFetchedCount = data.SectionsFetchedCount;
                     foreach (var item in data.Items)
                     {
@@ -60,7 +81,6 @@ namespace FetchUCM
 
                     break;
                 }
-                Console.WriteLine("Got a page!");
             }
         }
 

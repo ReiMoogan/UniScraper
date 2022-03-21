@@ -3,7 +3,10 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models
 {
-    public class MeetingTime
+    public enum MeetingType : byte { Lecture = 1, Discussion = 2, Lab = 3, Fieldwork = 4, Seminar = 5, IndividualStudy = 6, Tutorial = 7, Studio = 8, Practicum = 9, Exam = 10, Project = 11, Internship = 12 }
+    [Flags] public enum Days : byte { Base = 0, Sunday = 1, Monday = 2, Tuesday = 4, Wednesday = 8, Thursday = 16, Friday = 32, Saturday = 64 }
+    
+    public class MeetingTime : IDBMeetingTime
     {
         internal MeetingTime()
         {
@@ -21,9 +24,8 @@ namespace FetchUCM.Models
         [JsonProperty("campusDescription")] public string CampusDescription { get; private set; }
         [JsonProperty("room")] public string Room { get; private set; }
         [JsonProperty("creditHourSession")] public float CreditHourSession { get; private set; }
-        [JsonProperty("hoursWeek")] public float HoursPerWeek { get; private set; }
-
-        [Flags] public enum Days : byte { Base = 0, Sunday = 1, Monday = 2, Tuesday = 4, Wednesday = 8, Thursday = 16, Friday = 32, Saturday = 64 }
+        [JsonProperty("hoursWeek")] public byte HoursPerWeek { get; private set; }
+        
         // WTF IS THIS
         [JsonProperty("sunday")] public bool Sunday { get; private set; }
         [JsonProperty("monday")] public bool Monday { get; private set; }
@@ -47,9 +49,9 @@ namespace FetchUCM.Models
                 return temp;
             }
         }
-
-        public enum MeetingType : byte { Lecture = 1, Discussion = 2, Lab = 3, Fieldwork = 4, Seminar = 5, IndividualStudy = 6, Tutorial = 7, Studio = 8, Practicum = 9, Exam = 10 }
+        
         [JsonProperty("meetingType")] public string MeetingTypeRaw { get; private set; }
+        [JsonProperty("meetingTypeDescription")] public string MeetingTypeDescription { get; private set; }
         public MeetingType Type {
             get
             {
@@ -65,9 +67,64 @@ namespace FetchUCM.Models
                     "STDO" => MeetingType.Studio,
                     "PRA" => MeetingType.Practicum,
                     "EXAM" => MeetingType.Exam,
-                    _ => throw new InvalidOperationException($"Could not match {MeetingTypeRaw} to a MeetingType!")
+                    "PROJ" => MeetingType.Project,
+                    "INT" => MeetingType.Internship,
+                    _ => throw new InvalidOperationException($"Could not match {MeetingTypeRaw} to a MeetingType! Guess: ({MeetingTypeDescription})")
                 };
             }
         }
+    }
+
+    public interface IDBMeetingTime
+    {
+        [JsonProperty("beginTime")] public string BeginTime { get; }
+        [JsonProperty("endTime")] public string EndTime { get; }
+        [JsonProperty("startDate")] public string BeginDate { get; }
+        [JsonProperty("endDate")] public string EndDate { get; }
+        [JsonProperty("building")] public string Building { get; }
+        [JsonProperty("buildingDescription")] public string BuildingDescription { get; }
+        [JsonProperty("campus")] public string Campus { get; }
+        [JsonProperty("campusDescription")] public string CampusDescription { get; }
+        [JsonProperty("room")] public string Room { get; }
+        [JsonProperty("creditHourSession")] public float CreditHourSession { get; }
+        [JsonProperty("hoursWeek")] public byte HoursPerWeek { get; }
+        public Days InSession { get; }
+        public MeetingType Type { get; }
+    }
+
+    public class DBMeetingTime : IDBMeetingTime
+    {
+        public DBMeetingTime(int classId, IDBMeetingTime db)
+        {
+            ClassId = classId;
+            BeginTime = db.BeginTime;
+            EndTime = db.EndTime;
+            BeginDate = db.BeginDate;
+            EndDate = db.EndDate;
+            Building = db.Building;
+            BuildingDescription = db.BuildingDescription;
+            Campus = db.Campus;
+            CampusDescription = db.CampusDescription;
+            Room = db.Room;
+            CreditHourSession = db.CreditHourSession;
+            HoursPerWeek = db.HoursPerWeek;
+            InSession = db.InSession;
+            Type = db.Type;
+        }
+        
+        public int ClassId { get; set; }
+        public string BeginTime { get; }
+        public string EndTime { get; }
+        public string BeginDate { get; }
+        public string EndDate { get; }
+        public string Building { get; }
+        public string BuildingDescription { get; }
+        public string Campus { get; }
+        public string CampusDescription { get; }
+        public string Room { get; }
+        public float CreditHourSession { get; }
+        public byte HoursPerWeek { get; }
+        public Days InSession { get; }
+        public MeetingType Type { get; }
     }
 }
