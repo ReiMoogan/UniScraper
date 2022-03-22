@@ -48,23 +48,16 @@ namespace FetchUCM.Models
     public interface IDBClass
     {
         [JsonProperty("id")] public int Id { get; }
-        [JsonProperty("term")] public string TermRaw { get; }
         public int Term { get; }
-        [JsonProperty("termDesc")] public string TermDescription { get; }
-        [JsonProperty("partOfTerm")] public string PartOfTerm { get; }
         public int CourseReferenceNumber { get; }
-        [JsonProperty("subject")] public string Subject { get; }
-        [JsonProperty("courseNumber")] public string CourseNumberRaw { get; }
-        [JsonProperty("sequenceNumber")] public string SequenceNumber { get; }
+        public string CourseNumber { get; }
         [JsonProperty("campusDescription")] public string CampusDescription { get; }
-        [JsonProperty("scheduleTypeDescription")] public string ScheduleTypeDescription { get; }
         [JsonProperty("courseTitle")] public string CourseTitle { get; }
         [JsonProperty("creditHours")] public byte CreditHours { get; }
         [JsonProperty("maximumEnrollment")] public short MaximumEnrollment { get; }
         [JsonProperty("enrollment")] public short Enrollment { get; }
         [JsonProperty("seatsAvailable")] public short SeatsAvailable { get; }
         [JsonProperty("waitCapacity")] public short WaitCapacity { get; }
-        [JsonProperty("waitCount")] public short WaitCount { get; }
         [JsonProperty("waitAvailable")] public short WaitAvailable { get; }
     }
 }

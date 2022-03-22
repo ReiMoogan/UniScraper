@@ -20,63 +20,104 @@ namespace StandaloneTester
             await using var connection = new SqlConnection(config.SqlConnection);
             Console.WriteLine("Opening database connection...");
             await connection.OpenAsync();
-            await UpdateClasses(connection);
-            await UpdateProfessors(connection);
+            Console.WriteLine("Creating temporary databases...");
+            await CreateTemporaryTables(connection);
+            Console.WriteLine("Updating classes...");
+            var classTask = UpdateClasses(connection);
+            Console.WriteLine("Updating professors...");
+            var profTask = UpdateProfessors(connection);
+            Console.WriteLine("Waiting for both to finish...");
+            await Task.WhenAll(classTask, profTask);
+            Console.WriteLine("Freeing temporary databases...");
+            await DeleteTemporaryTables(connection);
             Console.WriteLine("Closing database connection...");
             await connection.CloseAsync();
             Console.WriteLine("Finished!");
         }
 
-        private static async Task UpdateProfessors(IDbConnection connection)
+        private static async Task UpdateProfessors(SqlConnection connection)
         {
-            Console.WriteLine("Updating professors...");
             const int ucmsid = 4767;
             var uni = RateMyProfessor.GetSchool(ucmsid);
-            var count = 0;
-            await foreach (var professor in uni.GetAllProfessors())
-            {
-                try
-                {
-                    var result = await connection.ExecuteAsync(
-                        "UPDATE UniScraper.UCM.professor SET rmp_id = @RMPID, middle_name = @MiddleName, department = @Department, num_ratings = @NumRatings, rating = @OverallRating WHERE REPLACE(REPLACE(first_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@FirstName, ' ', ''), '-', '') AND REPLACE(REPLACE(last_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@LastName, ' ', ''), '-', '');",
-                        new
-                        {
-                            RMPID = professor.Id, FirstName = $"%{professor.FirstName}%",
-                            LastName = $"%{professor.LastName}%", professor.MiddleName, professor.Department,
-                            professor.NumRatings, professor.OverallRating
-                        });
-                    
-                    if (result == 0)
-                        Console.WriteLine($"Could not find {professor.FirstName}, {professor.MiddleName}, {professor.LastName} in the database...");
-                    else
-                        ++count;
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine($"Failed query for {professor.FirstName} {professor.LastName}");
-                    throw;
-                }
+
+            var professors = await uni.GetAllProfessors().ToListAsync();
+            var professorTable = new DataTable();
+            
+            await using (var reader = ObjectReader.Create(professors, "Id", "FirstName", "LastName", "MiddleName", "Department", "NumRatings", "OverallRating")) {
+                professorTable.Load(reader);
             }
+            
+            using (var copier = new SqlBulkCopy(connection))
+            {
+                copier.DestinationTableName = "#professor_rmp";
+                copier.ColumnMappings.Add("Id", "rmp_id");
+                copier.ColumnMappings.Add("FirstName", "first_name");
+                copier.ColumnMappings.Add("LastName", "last_name");
+                copier.ColumnMappings.Add("MiddleName", "middle_name");
+                copier.ColumnMappings.Add("Department", "department");
+                copier.ColumnMappings.Add("OverallRating", "rating");
+                await copier.WriteToServerAsync(professorTable);
+            }
+            
+            /*
+            try
+            {
+                var result = await connection.ExecuteAsync(
+                    "UPDATE UniScraper.UCM.professor SET rmp_id = @RMPID, middle_name = @MiddleName, department = @Department, num_ratings = @NumRatings, rating = @OverallRating WHERE REPLACE(REPLACE(first_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@FirstName, ' ', ''), '-', '') AND REPLACE(REPLACE(last_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@LastName, ' ', ''), '-', '');",
+                    new
+                    {
+                        RMPID = professor.Id, FirstName = $"%{professor.FirstName}%",
+                        LastName = $"%{professor.LastName}%", professor.MiddleName, professor.Department,
+                        professor.NumRatings, professor.OverallRating
+                    });
+                
+                if (result == 0)
+                    Console.WriteLine($"Could not find {professor.FirstName}, {professor.MiddleName}, {professor.LastName} in the database...");
+                else
+                    ++count;
+            }
+            catch (Exception)
+            {
+                Console.WriteLine($"Failed query for {professor.FirstName} {professor.LastName}");
+                throw;
+            }*/
 
             await connection.ExecuteAsync(
                 "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'professor';");
-            Console.WriteLine($"Updated {count} professors!");
+            Console.WriteLine($"Updated {professors.Count} professors!");
         }
 
         private static async Task CreateTemporaryTables(IDbConnection connection)
         {
             await connection.ExecuteAsync(
-                "SELECT TOP 0 * INTO #class FROM [UniScraper].[UCM].[class]; SELECT TOP 0 * INTO #faculty FROM [UniScraper].[UCM].[faculty];SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];SELECT TOP 0 * INTO #professor FROM [UniScraper].[UCM].[professor];");
+                @"SELECT TOP 0 * INTO #class FROM [UniScraper].[UCM].[class];
+                SELECT TOP 0 * INTO #faculty FROM [UniScraper].[UCM].[faculty];
+                SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];
+                SELECT TOP 0 * INTO #professor FROM [UniScraper].[UCM].[professor];
+                CREATE TABLE #professor_rmp
+                (
+                    rmp_id int not null constraint rmp_id_pk primary key nonclustered,
+                    last_name nvarchar(64) NOT NULL,
+                    first_name nvarchar(64) NOT NULL,
+                    middle_name nvarchar(64),
+                    department varchar(64),
+                    num_ratings int constraint DF_num DEFAULT 0 NOT NULL,
+                    rating real constraint DF_rate DEFAULT 0.0 NOT NULL
+                );
+
+                CREATE UNIQUE INDEX pp_id ON #professor_rmp (rmp_id);
+                ");
         }
         
         private static async Task DeleteTemporaryTables(IDbConnection connection)
         {
             await connection.ExecuteAsync(
-                "DROP TABLE #class; DROP TABLE #faculty; DROP TABLE #meeting; DROP TABLE #professor;");
+                "DROP TABLE #class; DROP TABLE #faculty; DROP TABLE #meeting; DROP TABLE #professor; DROP TABLE #professor_rmp;");
         }
 
         private static void MapSql(DataTable table, SqlBulkCopy copier)
         {
+            copier.ColumnMappings.Clear();
             foreach (var col in table.Columns)
             {
                 var name = ((DataColumn) col).ColumnName;
@@ -88,7 +129,6 @@ namespace StandaloneTester
         
         private static async Task UpdateClasses(SqlConnection connection)
         {
-            Console.WriteLine("Updating classes...");
             var catalog = new UCMCatalog();
             var term = (await catalog.GetAllTerms())[0].Code;
             Console.WriteLine($"Reading from term {term}");
@@ -117,7 +157,6 @@ namespace StandaloneTester
                 meetingTable.Load(reader);
             }
 
-            await CreateTemporaryTables(connection);
             using (var copier = new SqlBulkCopy(connection))
             {
                 copier.DestinationTableName = "#class";

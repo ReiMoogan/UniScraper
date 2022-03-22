@@ -11,17 +11,16 @@ namespace FetchUCM
     public class UCMCatalog
     {
         private static readonly HttpClient Client;
-        private static readonly CookieContainer Cookies;
         private readonly HttpClient _client;
 
         static UCMCatalog()
         {
-            Cookies = new CookieContainer();
+            var cookies = new CookieContainer();
             var handler = new HttpClientHandler
             {
                 AllowAutoRedirect = true,
                 UseCookies = true,
-                CookieContainer = Cookies
+                CookieContainer = cookies
             };
             Client = new HttpClient(handler);
             Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36");

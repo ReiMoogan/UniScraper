@@ -52,7 +52,7 @@ namespace FetchUCM.Models
         
         [JsonProperty("meetingType")] public string MeetingTypeRaw { get; private set; }
         [JsonProperty("meetingTypeDescription")] public string MeetingTypeDescription { get; private set; }
-        public MeetingType Type {
+        public MeetingType MeetingType {
             get
             {
                 return MeetingTypeRaw switch
@@ -89,7 +89,7 @@ namespace FetchUCM.Models
         [JsonProperty("creditHourSession")] public float CreditHourSession { get; }
         [JsonProperty("hoursWeek")] public byte HoursPerWeek { get; }
         public Days InSession { get; }
-        public MeetingType Type { get; }
+        public MeetingType MeetingType { get; }
     }
 
     public class DBMeetingTime : IDBMeetingTime
@@ -109,10 +109,10 @@ namespace FetchUCM.Models
             CreditHourSession = db.CreditHourSession;
             HoursPerWeek = db.HoursPerWeek;
             InSession = db.InSession;
-            Type = db.Type;
+            MeetingType = db.MeetingType;
         }
         
-        public int ClassId { get; set; }
+        public int ClassId { get; }
         public string BeginTime { get; }
         public string EndTime { get; }
         public string BeginDate { get; }
@@ -125,6 +125,6 @@ namespace FetchUCM.Models
         public float CreditHourSession { get; }
         public byte HoursPerWeek { get; }
         public Days InSession { get; }
-        public MeetingType Type { get; }
+        public MeetingType MeetingType { get; }
     }
 }
