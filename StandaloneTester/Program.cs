@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -16,6 +17,8 @@ namespace StandaloneTester
     {
         private static async Task Main()
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var config = ScrapperConfig.Load().Verify();
             await using var connection = new SqlConnection(config.SqlConnection);
             Console.WriteLine("Opening database connection...");
@@ -32,7 +35,7 @@ namespace StandaloneTester
             await DeleteTemporaryTables(connection);
             Console.WriteLine("Closing database connection...");
             await connection.CloseAsync();
-            Console.WriteLine("Finished!");
+            Console.WriteLine($"Finished in {stopwatch.Elapsed.TotalSeconds}s!");
         }
 
         private static async Task UpdateProfessors(SqlConnection connection)

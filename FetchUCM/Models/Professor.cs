@@ -10,7 +10,7 @@ namespace FetchUCM.Models
         }
         
         [JsonProperty("bannerId")] public string BannerIdRaw { get; private set; }
-        public int BannerId => short.Parse(BannerIdRaw);
+        public int BannerId => int.Parse(BannerIdRaw);
         public int Id => BannerId; // Renaming for DB
         [JsonProperty("displayName")] public string DisplayName { get; private set; }
         [JsonProperty("emailAddress")] public string Email { get; private set; }
