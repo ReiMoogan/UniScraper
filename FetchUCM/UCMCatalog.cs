@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -20,7 +21,9 @@ namespace FetchUCM
             {
                 AllowAutoRedirect = true,
                 UseCookies = true,
-                CookieContainer = cookies
+                CookieContainer = cookies,
+                Proxy = null,
+                UseProxy = false
             };
             Client = new HttpClient(handler);
             Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36");
@@ -39,48 +42,51 @@ namespace FetchUCM
                 "https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/courseSearch/courseSearch");
         }
         
-        public async IAsyncEnumerable<Class> GetAllClasses(int term)
+        public async Task<IEnumerable<Class>> GetAllClasses(int term)
         {
-            const int maxAttempts = 5;
-            var pageOffset = 0;
-            var sectionsFetchedCount = 1;
             await GetCookie(term);
-
-            while (pageOffset < sectionsFetchedCount)
+            var sections = await CountSections(term);
+            var output = new ConcurrentBag<Class>();
+            var fetchTasks = new List<Task>();
+            for (var i = 0; i < sections / 500 + 1; ++i)
             {
-                for (var attempt = 0; attempt < maxAttempts; ++attempt)
-                {
-                    var classesUrl =
-                        $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term={term}&pageOffset={pageOffset}&pageMaxSize=500&sortColumn=subjectDescription&sortDirection=asc";
-                    var response = await _client.GetAsync(classesUrl);
-                    response.EnsureSuccessStatusCode();
-                    var json = await response.Content.ReadAsStringAsync();
-                    var data = JsonConvert.DeserializeObject<ClassPaging>(json, new ClassJsonConverter());
-                    if (data == null)
-                        throw new InvalidOperationException("Did not get a JSON response querying for classes!");
-                    if (!data.Success)
-                        throw new InvalidOperationException($"Response indicated failure!\n{data}");
-                    if (data.Items == null)
-                    {
-                        if (attempt == maxAttempts - 1)
-                        {
-                            throw new TimeoutException(
-                                $"Failed to get class data after {maxAttempts} attempts! Is the JSESSIONID valid?");
-                        }
-
-                        await Task.Delay(750); // Ugh, this API sucks.
-                        continue; // Run to next attempt, do not try to process null.
-                    }
-                    sectionsFetchedCount = data.SectionsFetchedCount;
-                    foreach (var item in data.Items)
-                    {
-                        yield return item;
-                        ++pageOffset;
-                    }
-
-                    break;
-                }
+                fetchTasks.Add(GetClassPagination(term, i * 500, output));
             }
+            await Task.WhenAll(fetchTasks);
+            return output;
+        }
+        
+        private async Task<int> CountSections(int term)
+        {
+            var classesUrl =
+                $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term={term}&pageOffset=0&pageMaxSize=1&sortColumn=subjectDescription&sortDirection=asc";
+            var response = await _client.GetAsync(classesUrl);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            var data = JsonConvert.DeserializeObject<ClassPaging>(json, new ClassJsonConverter());
+            if (data == null)
+                throw new InvalidOperationException("Did not get a JSON response querying for classes!");
+            if (!data.Success)
+                throw new InvalidOperationException($"Response indicated failure!\n{data}");
+            return data.SectionsFetchedCount;
+        }
+
+        private async Task GetClassPagination(int term, int pageOffset, ConcurrentBag<Class> output)
+        {
+            var classesUrl =
+                $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_term={term}&pageOffset={pageOffset}&pageMaxSize=500&sortColumn=subjectDescription&sortDirection=asc";
+            var response = await _client.GetAsync(classesUrl);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            var data = JsonConvert.DeserializeObject<ClassPaging>(json, new ClassJsonConverter());
+            if (data == null)
+                throw new InvalidOperationException("Did not get a JSON response querying for classes!");
+            if (!data.Success)
+                throw new InvalidOperationException($"Response indicated failure!\n{data}");
+            if (data.Items == null)
+                throw new InvalidOperationException("Data was invalid!");
+            foreach (var item in data.Items)
+                output.Add(item);
         }
 
         public async Task<Term[]> GetAllTerms()
