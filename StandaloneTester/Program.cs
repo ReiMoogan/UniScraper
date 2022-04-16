@@ -44,9 +44,15 @@ namespace StandaloneTester
             var uni = RateMyProfessor.GetSchool(ucmsid);
 
             var professors = await uni.GetAllProfessors().ToListAsync();
+            var noDuplicates = professors.GroupBy(o => new { FirstName = o.FirstName.Replace("-", "").Replace(" ", ""), LastName = o.LastName.Replace("-", "").Replace(" ", "") }).Select(o =>
+            {
+                if (o.Count() > 1)
+                    Console.WriteLine($"Duplicate between {string.Join(", ", o)}");
+                return o.Aggregate((a, b) => a.NumRatings > b.NumRatings ? a : b);
+            }).ToList();
             var professorTable = new DataTable();
             
-            await using (var reader = ObjectReader.Create(professors, "Id", "FirstName", "LastName", "MiddleName", "Department", "NumRatings", "OverallRating")) {
+            await using (var reader = ObjectReader.Create(noDuplicates, "Id", "FirstName", "LastName", "MiddleName", "Department", "NumRatings", "OverallRating")) {
                 professorTable.Load(reader);
             }
             
@@ -58,42 +64,17 @@ namespace StandaloneTester
                 copier.ColumnMappings.Add("LastName", "last_name");
                 copier.ColumnMappings.Add("MiddleName", "middle_name");
                 copier.ColumnMappings.Add("Department", "department");
+                copier.ColumnMappings.Add("NumRatings", "num_ratings");
                 copier.ColumnMappings.Add("OverallRating", "rating");
                 await copier.WriteToServerAsync(professorTable);
             }
-            
-            /*
-            try
-            {
-                var result = await connection.ExecuteAsync(
-                    "UPDATE UniScraper.UCM.professor SET rmp_id = @RMPID, middle_name = @MiddleName, department = @Department, num_ratings = @NumRatings, rating = @OverallRating WHERE REPLACE(REPLACE(first_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@FirstName, ' ', ''), '-', '') AND REPLACE(REPLACE(last_name, ' ', ''), '-', '') LIKE REPLACE(REPLACE(@LastName, ' ', ''), '-', '');",
-                    new
-                    {
-                        RMPID = professor.Id, FirstName = $"%{professor.FirstName}%",
-                        LastName = $"%{professor.LastName}%", professor.MiddleName, professor.Department,
-                        professor.NumRatings, professor.OverallRating
-                    });
-                
-                if (result == 0)
-                    Console.WriteLine($"Could not find {professor.FirstName}, {professor.MiddleName}, {professor.LastName} in the database...");
-                else
-                    ++count;
-            }
-            catch (Exception)
-            {
-                Console.WriteLine($"Failed query for {professor.FirstName} {professor.LastName}");
-                throw;
-            }*/
 
             await connection.ExecuteAsync(
-                "MERGE INTO UniScraper.UCM.professor WITH (HOLDLOCK) AS Target " +
-                "USING (SELECT rmp_id, first_name, middle_name, last_name, department, rating FROM #professor_rmp) AS SOURCE(rmp_id, first_name, middle_name, last_name, department, rating) " +
-                "ON Target.rmp_id = SOURCE.rmp_id WHEN MATCHED THEN " +
-                "UPDATE SET first_name = SOURCE.first_name, middle_name = SOURCE.middle_name, last_name = SOURCE.last_name, department = SOURCE.department, rating = SOURCE.rating;");
+                "EXEC [UniScraper].[UCM].[MergeRMP];");
 
             await connection.ExecuteAsync(
                 "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'professor';");
-            Console.WriteLine($"Updated {professors.Count} professors!");
+            Console.WriteLine($"Updated {noDuplicates.Count} professors!");
         }
 
         private static async Task CreateTemporaryTables(IDbConnection connection)
@@ -144,7 +125,7 @@ namespace StandaloneTester
             var catalog = new UCMCatalog();
             var term = (await catalog.GetAllTerms())[0].Code;
             Console.WriteLine($"Reading from term {term}");
-            var everything = await catalog.GetAllClasses(term);
+            var everything = (await catalog.GetAllClasses(term)).ToList();
             
             Console.WriteLine($"Fetched data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();

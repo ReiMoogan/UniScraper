@@ -33,5 +33,10 @@ namespace FetchRateMyProf.Models
                 return ratingSuccess ? rating : 0.0f;
             }
         }
+
+        public override string ToString()
+        {
+            return $"{FirstName} {MiddleName} {LastName}";
+        }
     }
 }
