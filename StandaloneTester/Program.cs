@@ -81,7 +81,11 @@ namespace StandaloneTester
         {
             await connection.ExecuteAsync(
                 @"SELECT TOP 0 * INTO #class FROM [UniScraper].[UCM].[class];
-                SELECT TOP 0 * INTO #faculty FROM [UniScraper].[UCM].[faculty];
+                CREATE TABLE #faculty
+                (
+	                class_id int NOT NULL,
+	                professor_email varchar(256) NOT NULL
+                );
                 SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];
                 SELECT TOP 0 * INTO #professor FROM [UniScraper].[UCM].[professor];
                 CREATE TABLE #professor_rmp
@@ -133,7 +137,7 @@ namespace StandaloneTester
             var classes = everything.Select(o => (IDBClass) o);
             var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor) o).GroupBy(o => o.Id).Select(o => o.First());
             var faculty = everything.SelectMany(o =>
-                o.Faculty.Select(p => new Faculty { ProfessorId = p.BannerId, ClassId = o.Id }));
+                o.Faculty.Select(p => new Faculty { ProfessorEmail = p.Email, ClassId = o.Id }));
             var meetings = everything.SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.Id, p.Time))).GroupBy(o => new {o.ClassId, o.MeetingType}).Select(o => o.First());
             var classTable = new DataTable();
             var professorTable = new DataTable();
