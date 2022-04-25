@@ -1,3 +1,5 @@
+using System.IO;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace FetchUCM.Models
@@ -33,7 +35,16 @@ namespace FetchUCM.Models
         }
         [JsonProperty("campusDescription")] public string CampusDescription { get; private set; }
         [JsonProperty("scheduleTypeDescription")] public string ScheduleTypeDescription { get; private set; }
-        [JsonProperty("courseTitle")] public string CourseTitle { get; private set; }
+        [JsonProperty("courseTitle")] public string CourseTitleRaw { get; private set; }
+        public string CourseTitle
+        {
+            get
+            {
+                var writer = new StringWriter();
+                WebUtility.HtmlDecode(CourseTitleRaw, writer);
+                return writer.ToString();
+            }
+        }
         [JsonProperty("creditHours")] public byte CreditHours { get; private set; }
         [JsonProperty("maximumEnrollment")] public short MaximumEnrollment { get; private set; }
         [JsonProperty("enrollment")] public short Enrollment { get; private set; }
@@ -52,7 +63,7 @@ namespace FetchUCM.Models
         public int CourseReferenceNumber { get; }
         public string CourseNumber { get; }
         [JsonProperty("campusDescription")] public string CampusDescription { get; }
-        [JsonProperty("courseTitle")] public string CourseTitle { get; }
+        public string CourseTitle { get; }
         [JsonProperty("creditHours")] public byte CreditHours { get; }
         [JsonProperty("maximumEnrollment")] public short MaximumEnrollment { get; }
         [JsonProperty("enrollment")] public short Enrollment { get; }

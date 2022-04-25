@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace FetchUCM.Models
@@ -19,7 +21,16 @@ namespace FetchUCM.Models
         [JsonProperty("endDate")] public string EndDate { get; private set; }
         
         [JsonProperty("building")] public string Building { get; private set; }
-        [JsonProperty("buildingDescription")] public string BuildingDescription { get; private set; }
+        [JsonProperty("buildingDescription")] public string BuildingDescriptionRaw { get; private set; }
+        public string BuildingDescription
+        {
+            get
+            {
+                var writer = new StringWriter();
+                WebUtility.HtmlDecode(BuildingDescriptionRaw, writer);
+                return writer.ToString();
+            }
+        }
         [JsonProperty("campus")] public string Campus { get; private set; }
         [JsonProperty("campusDescription")] public string CampusDescription { get; private set; }
         [JsonProperty("room")] public string Room { get; private set; }
@@ -82,7 +93,7 @@ namespace FetchUCM.Models
         [JsonProperty("startDate")] public string BeginDate { get; }
         [JsonProperty("endDate")] public string EndDate { get; }
         [JsonProperty("building")] public string Building { get; }
-        [JsonProperty("buildingDescription")] public string BuildingDescription { get; }
+        public string BuildingDescription { get; }
         [JsonProperty("campus")] public string Campus { get; }
         [JsonProperty("campusDescription")] public string CampusDescription { get; }
         [JsonProperty("room")] public string Room { get; }
