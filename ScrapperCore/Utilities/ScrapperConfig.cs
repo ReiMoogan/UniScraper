@@ -23,7 +23,8 @@ namespace ScrapperCore.Utilities
                     IntegratedSecurity = false,
                     UserID = "UniScraper",
                     Password = SqlPassword,
-                    InitialCatalog = "UniScraper"
+                    InitialCatalog = "UniScraper",
+                    MultipleActiveResultSets = true
                 };
                 return output.ConnectionString;
             }

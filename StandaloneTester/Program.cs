@@ -23,6 +23,8 @@ namespace StandaloneTester
             await using var connection = new SqlConnection(config.SqlConnection);
             Console.WriteLine("Opening database connection...");
             await connection.OpenAsync();
+            Console.WriteLine("Clearing any old tables...");
+            await DropTemporaryTables(connection);
             Console.WriteLine("Creating temporary databases...");
             await CreateTemporaryTables(connection);
             Console.WriteLine("Updating classes...");
@@ -32,7 +34,7 @@ namespace StandaloneTester
             Console.WriteLine("Waiting for both to finish...");
             await Task.WhenAll(classTask, profTask);
             Console.WriteLine("Freeing temporary databases...");
-            await DeleteTemporaryTables(connection);
+            await DropTemporaryTables(connection);
             Console.WriteLine("Closing database connection...");
             await connection.CloseAsync();
             Console.WriteLine($"Finished in {stopwatch.Elapsed.TotalSeconds}s!");
@@ -87,7 +89,16 @@ namespace StandaloneTester
 	                professor_email varchar(256) NOT NULL
                 );
                 SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];
-                SELECT TOP 0 * INTO #professor FROM [UniScraper].[UCM].[professor];
+                CREATE TABLE #professor
+                (
+                    id int not null constraint id_pk primary key nonclustered,
+                    last_name nvarchar(64) NOT NULL,
+                    first_name nvarchar(64) NOT NULL,
+                    email varchar(64) NOT NULL,
+                    -- For compatibility with the IDBProfessor object
+                    num_ratings int DEFAULT 0 NOT NULL,
+                    rating real DEFAULT 0.0 NOT NULL
+                );
                 CREATE TABLE #professor_rmp
                 (
                     rmp_id int not null constraint rmp_id_pk primary key nonclustered,
@@ -103,10 +114,17 @@ namespace StandaloneTester
                 ");
         }
         
-        private static async Task DeleteTemporaryTables(IDbConnection connection)
+        private static async Task DropTemporaryTables(IDbConnection connection)
         {
-            await connection.ExecuteAsync(
-                "DROP TABLE #class; DROP TABLE #faculty; DROP TABLE #meeting; DROP TABLE #professor; DROP TABLE #professor_rmp;");
+            try
+            {
+                await connection.ExecuteAsync(
+                    "DROP TABLE #class; DROP TABLE #faculty; DROP TABLE #meeting; DROP TABLE #professor; DROP TABLE #professor_rmp;");
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
         }
 
         private static void MapSql(DataTable table, SqlBulkCopy copier)
@@ -127,7 +145,9 @@ namespace StandaloneTester
             stopwatch.Start();
             
             var catalog = new UCMCatalog();
-            var term = (await catalog.GetAllTerms())[0].Code;
+            /*
+            var term = (await catalog.GetAllTerms())[0].Code;*/
+            const int term = 202210;
             Console.WriteLine($"Reading from term {term}");
             var everything = (await catalog.GetAllClasses(term)).ToList();
             
@@ -138,7 +158,7 @@ namespace StandaloneTester
             var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor) o).GroupBy(o => o.Id).Select(o => o.First());
             var faculty = everything.SelectMany(o =>
                 o.Faculty.Select(p => new Faculty { ProfessorEmail = p.Email, ClassId = o.Id }));
-            var meetings = everything.SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.Id, p.Time))).GroupBy(o => new {o.ClassId, o.MeetingType}).Select(o => o.First());
+            var meetings = everything.SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.CourseReferenceNumber, p.Time))).GroupBy(o => new {o.ClassId, o.MeetingType}).Select(o => o.First());
             var classTable = new DataTable();
             var professorTable = new DataTable();
             var facultyTable = new DataTable();
