@@ -25,16 +25,13 @@ namespace StandaloneTester
             await connection.OpenAsync();
             Console.WriteLine("Clearing any old tables...");
             await DropTemporaryTables(connection);
-            Console.WriteLine("Creating temporary databases...");
-            await CreateTemporaryTables(connection);
+            await DropRMPTemporaryTables(connection);
             Console.WriteLine("Updating classes...");
             var classTask = UpdateClasses(connection);
             Console.WriteLine("Updating professors...");
             var profTask = UpdateProfessors(connection);
             Console.WriteLine("Waiting for both to finish...");
             await Task.WhenAll(classTask, profTask);
-            Console.WriteLine("Freeing temporary databases...");
-            await DropTemporaryTables(connection);
             Console.WriteLine("Closing database connection...");
             await connection.CloseAsync();
             Console.WriteLine($"Finished in {stopwatch.Elapsed.TotalSeconds}s!");
@@ -57,7 +54,8 @@ namespace StandaloneTester
             await using (var reader = ObjectReader.Create(noDuplicates, "Id", "FirstName", "LastName", "MiddleName", "Department", "NumRatings", "OverallRating")) {
                 professorTable.Load(reader);
             }
-            
+
+            await CreateRMPTemporaryTables(connection);
             using (var copier = new SqlBulkCopy(connection))
             {
                 copier.DestinationTableName = "#professor_rmp";
@@ -73,6 +71,7 @@ namespace StandaloneTester
 
             await connection.ExecuteAsync(
                 "EXEC [UniScraper].[UCM].[MergeRMP];");
+            await DropRMPTemporaryTables(connection);
 
             await connection.ExecuteAsync(
                 "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'professor';");
@@ -99,7 +98,13 @@ namespace StandaloneTester
                     num_ratings int DEFAULT 0 NOT NULL,
                     rating real DEFAULT 0.0 NOT NULL
                 );
-                CREATE TABLE #professor_rmp
+                ");
+        }
+
+        private static async Task CreateRMPTemporaryTables(IDbConnection connection)
+        {
+            await connection.ExecuteAsync(
+                @"CREATE TABLE #professor_rmp
                 (
                     rmp_id int not null constraint rmp_id_pk primary key nonclustered,
                     last_name nvarchar(64) NOT NULL,
@@ -126,6 +131,18 @@ namespace StandaloneTester
                 // ignored
             }
         }
+        
+        private static async Task DropRMPTemporaryTables(IDbConnection connection)
+        {
+            try
+            {
+                await connection.ExecuteAsync("DROP TABLE #professor_rmp;");
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
 
         private static void MapSql(DataTable table, SqlBulkCopy copier)
         {
@@ -141,42 +158,65 @@ namespace StandaloneTester
         
         private static async Task UpdateClasses(SqlConnection connection)
         {
+            var catalog = new UCMCatalog();
+            var terms = await catalog.GetAllTerms();
+            foreach (var term in terms)
+            {
+                if (!term.Description.ToLower().Contains("only"))
+                {
+                    Console.WriteLine("Creating temporary databases...");
+                    await CreateTemporaryTables(connection);
+                    Console.WriteLine($"Reading from {term.Description}");
+                    await UpdateTerm(connection, catalog, term.Code);
+                    Console.WriteLine("Dropping temporary databases...");
+                    await DropTemporaryTables(connection);
+                }
+            }
+        }
+
+        private static async Task UpdateTerm(SqlConnection connection, UCMCatalog catalog, int term)
+        {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             
-            var catalog = new UCMCatalog();
-            /*
-            var term = (await catalog.GetAllTerms())[0].Code;*/
-            const int term = 202210;
-            Console.WriteLine($"Reading from term {term}");
             var everything = (await catalog.GetAllClasses(term)).ToList();
-            
+
             Console.WriteLine($"Fetched data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();
-            
-            var classes = everything.Select(o => (IDBClass) o);
-            var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor) o).GroupBy(o => o.Id).Select(o => o.First());
+
+            var classes = everything.Select(o => (IDBClass)o);
+            var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor)o).GroupBy(o => o.Id)
+                .Select(o => o.First());
             var faculty = everything.SelectMany(o =>
                 o.Faculty.Select(p => new Faculty { ProfessorEmail = p.Email, ClassId = o.Id }));
-            var meetings = everything.SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.CourseReferenceNumber, p.Time))).GroupBy(o => new {o.ClassId, o.MeetingType}).Select(o => o.First());
+            var meetings = everything
+                .SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.CourseReferenceNumber, p.Time)))
+                .GroupBy(o => new { o.ClassId, o.MeetingType }).Select(o => o.First());
             var classTable = new DataTable();
             var professorTable = new DataTable();
             var facultyTable = new DataTable();
             var meetingTable = new DataTable();
-            
-            await using (var reader = ObjectReader.Create(classes)) {
+
+            await using (var reader = ObjectReader.Create(classes))
+            {
                 classTable.Load(reader);
             }
-            await using (var reader = ObjectReader.Create(professors)) {
+
+            await using (var reader = ObjectReader.Create(professors))
+            {
                 professorTable.Load(reader);
             }
-            await using (var reader = ObjectReader.Create(faculty)) {
+
+            await using (var reader = ObjectReader.Create(faculty))
+            {
                 facultyTable.Load(reader);
             }
-            await using (var reader = ObjectReader.Create(meetings)) {
+
+            await using (var reader = ObjectReader.Create(meetings))
+            {
                 meetingTable.Load(reader);
             }
-            
+
             Console.WriteLine($"Prepared data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();
 
@@ -195,19 +235,20 @@ namespace StandaloneTester
                 MapSql(meetingTable, copier);
                 await copier.WriteToServerAsync(meetingTable);
             }
-            
+
             Console.WriteLine($"Copied data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();
-            
+
             await connection.ExecuteAsync(
                 "EXEC [UniScraper].[UCM].[MergeUpload];");
 
             Console.WriteLine($"Merged data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();
-            
+
             await connection.ExecuteAsync(
                 "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'class';");
-            Console.WriteLine($"Updated {classTable.Rows.Count} classes, {professorTable.Rows.Count} professors, and {meetingTable.Rows.Count} meetings!");
+            Console.WriteLine(
+                $"For {term}, updated {classTable.Rows.Count} classes, {professorTable.Rows.Count} professors, and {meetingTable.Rows.Count} meetings!");
         }
     }
 }
