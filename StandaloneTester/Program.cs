@@ -18,12 +18,12 @@ internal static class Program
         await connection.OpenAsync();
         Console.WriteLine("Updating classes...");
         var classTask = UpdateUCMClasses.UpdateClasses(connection);
-        Console.WriteLine("Updating class descriptions...");
-        var descriptionTask = Task.CompletedTask; //UpdateUCMDescriptions.UpdateDescriptions(connection);
         Console.WriteLine("Updating professors...");
         var profTask = UpdateRMP.UpdateProfessors(connection);
-        Console.WriteLine("Waiting for all tasks to finish...");
-        await Task.WhenAll(classTask, descriptionTask, profTask);
+        Console.WriteLine("Waiting for previous two tasks to finish...");
+        await Task.WhenAll(classTask, profTask);
+        Console.WriteLine("Updating class descriptions...");
+        await UpdateUCMDescriptions.UpdateDescriptions(connection);
         Console.WriteLine("Closing database connection...");
         await connection.CloseAsync();
         Console.WriteLine($"Finished in {stopwatch.Elapsed.TotalSeconds}s!");

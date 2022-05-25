@@ -46,8 +46,13 @@ public class ScrapperConfig
         JsonConvert.PopulateObject(json, config);
         config.RawData = JObject.Parse(json);
         // Update config, so we can bring in new changes if there are updates.
-        File.WriteAllText(file, JsonConvert.SerializeObject(config, Formatting.Indented));
+        config.Save(file);
         return config;
+    }
+
+    public void Save(string file = "config.json")
+    {
+        File.WriteAllText(file ?? "config.json", JsonConvert.SerializeObject(this, Formatting.Indented));
     }
 
     public ScrapperConfig Verify()

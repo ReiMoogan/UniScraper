@@ -14,6 +14,13 @@ public class UpdateUCMDescriptions
 {
     public static async Task UpdateDescriptions(SqlConnection connection)
     {
+        // Only run every so often, so we don't effectively DoS the school.
+        if (!await TimeToRun(connection))
+        {
+            Console.WriteLine("Skipping attribute fetching.");
+            return;
+        }
+        
         // Drop if a previous session crashed mid-way.
         await DropTemporaryTable(connection);
         
@@ -66,6 +73,13 @@ public class UpdateUCMDescriptions
             "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'description';");
         Console.WriteLine($"Updated {descriptionTable.Rows.Count} descriptions!");
     }
+
+    private static async Task<bool> TimeToRun(IDbConnection connection)
+    {
+        var time = await connection.QueryFirstOrDefaultAsync<int>(
+            "SELECT DATEDIFF(SECOND, last_update, SYSDATETIME()) FROM [UCM].[stats] WHERE table_name = 'description';");
+        return time > 24 * 60 * 60; // Wait every day.
+    }
     
     private static async Task CreateTemporaryTable(IDbConnection connection)
     {
@@ -82,7 +96,7 @@ public class UpdateUCMDescriptions
             @"CREATE TABLE #description
                 (
 	                course_number varchar(16) NOT NULL,
-	                course_description varchar(1024) NOT NULL
+	                course_description varchar(1024)
                 )");
     }
     
