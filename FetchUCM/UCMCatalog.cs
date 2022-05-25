@@ -11,6 +11,7 @@ public partial class UCMCatalog
 {
     private static readonly HttpClient Client;
     private readonly HttpClient _client;
+    private bool _cookieSet;
 
     static UCMCatalog()
     {
@@ -34,22 +35,28 @@ public partial class UCMCatalog
 
     private async Task GetCookie(int term)
     {
+        if (_cookieSet)
+            return;
+        
         await Client.GetAsync(
             $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/term/search?mode=courseSearch&term={term}&studyPath=&studyPathText=&startDatepicker=&endDatepicker=");
         await Client.GetAsync(
             "https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/courseSearch/courseSearch");
+        _cookieSet = true;
     }
 
-    private static string GenerateURL(string method, int? term = null, int? pageOffset = null, int? pageMaxSize = null)
+    private static string GenerateURL(string method, int? term = null, int? pageOffset = null, int? pageMaxSize = null, bool post = false)
     {
-        var baseUrl = $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/{method}?";
+        var baseUrl = $"https://reg-prod.ec.ucmerced.edu/StudentRegistrationSsb/ssb/{method}";
+        if (post)
+            return baseUrl;
         var args = "";
         if (term != null)
             args += $"txt_term={term}&";
         if (pageOffset != null)
-            args += $"pageOffset={term}&";
+            args += $"pageOffset={pageOffset}&";
         if (pageMaxSize != null)
-            args += $"pageMaxSize={term}&";
+            args += $"pageMaxSize={pageMaxSize}&";
         return $"{baseUrl}?{args}sortColumn=subjectDescription&sortDirection=asc";
     }
 
@@ -58,7 +65,7 @@ public partial class UCMCatalog
         if (data == null)
             throw new InvalidOperationException("Did not get a JSON response querying for classes!");
         if (!data.Success)
-            throw new InvalidOperationException($"Response indicated failure!\n{data}");
+            throw new InvalidOperationException($"Response indicated failure!");
         if (data.Items == null)
             throw new InvalidOperationException("Data was invalid!");
     }

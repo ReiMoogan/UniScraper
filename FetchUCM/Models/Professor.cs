@@ -41,6 +41,8 @@ public interface IDBProfessor
     public string FirstName { get; }
     public string LastName { get; }
     [JsonProperty("emailAddress")] public string Email { get; }
+    /// For compatibility with our database, unused by Banner.
     public float Rating { get; }
+    /// For compatibility with our database, unused by Banner.
     public int NumRatings { get; }
 }

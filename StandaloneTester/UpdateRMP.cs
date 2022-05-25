@@ -76,7 +76,7 @@ public static class UpdateRMP
     {
         try
         {
-            await connection.ExecuteAsync("DROP TABLE #professor_rmp;");
+            await connection.ExecuteAsync("DROP TABLE IF EXISTS #professor_rmp;");
         }
         catch (Exception)
         {

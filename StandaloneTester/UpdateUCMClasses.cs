@@ -11,7 +11,7 @@ using FetchUCM.Models;
 
 namespace StandaloneTester;
 
-public static partial class UpdateUCM
+public static class UpdateUCMClasses
 {
     public static async Task UpdateClasses(SqlConnection connection)
     {
@@ -20,7 +20,6 @@ public static partial class UpdateUCM
         
         var catalog = new UCMCatalog();
         var terms = await catalog.GetAllTerms();
-        var descriptions = await catalog.GetAllDescriptions(terms.Last().Code);
         foreach (var term in terms)
         {
             // Skip read/view-only tables, no need to update static tables.
@@ -124,7 +123,7 @@ public static partial class UpdateUCM
                 SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];
                 CREATE TABLE #professor
                 (
-                    id int not null constraint id_pk primary key nonclustered,
+                    id int not null constraint id_temp_pk primary key nonclustered,
                     last_name nvarchar(64) NOT NULL,
                     first_name nvarchar(64) NOT NULL,
                     email varchar(64) NOT NULL,
@@ -140,7 +139,7 @@ public static partial class UpdateUCM
         try
         {
             await connection.ExecuteAsync(
-                "DROP TABLE #class; DROP TABLE #faculty; DROP TABLE #meeting; DROP TABLE #professor;");
+                "DROP TABLE IF EXISTS #class; DROP TABLE IF EXISTS #faculty; DROP TABLE IF EXISTS #meeting; DROP TABLE IF EXISTS #professor;");
         }
         catch (Exception)
         {

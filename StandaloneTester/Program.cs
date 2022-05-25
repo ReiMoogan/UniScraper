@@ -17,11 +17,13 @@ internal static class Program
         Console.WriteLine("Opening database connection...");
         await connection.OpenAsync();
         Console.WriteLine("Updating classes...");
-        var classTask = UpdateUCM.UpdateClasses(connection);
+        var classTask = UpdateUCMClasses.UpdateClasses(connection);
+        Console.WriteLine("Updating class descriptions...");
+        var descriptionTask = Task.CompletedTask; //UpdateUCMDescriptions.UpdateDescriptions(connection);
         Console.WriteLine("Updating professors...");
         var profTask = UpdateRMP.UpdateProfessors(connection);
-        Console.WriteLine("Waiting for both to finish...");
-        await Task.WhenAll(classTask, profTask);
+        Console.WriteLine("Waiting for all tasks to finish...");
+        await Task.WhenAll(classTask, descriptionTask, profTask);
         Console.WriteLine("Closing database connection...");
         await connection.CloseAsync();
         Console.WriteLine($"Finished in {stopwatch.Elapsed.TotalSeconds}s!");

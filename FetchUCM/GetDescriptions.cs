@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 using FetchUCM.Models;
 using Newtonsoft.Json;
@@ -9,6 +8,11 @@ namespace FetchUCM;
 
 public partial class UCMCatalog
 {
+    /// <summary>
+    /// Descriptions may be cut off; use <see cref="GetCourseDescription"/> for the full thing.
+    /// </summary>
+    /// <param name="term"></param>
+    /// <returns></returns>
     public async Task<IEnumerable<Description>> GetAllDescriptions(int term)
     {
         await GetCookie(term);
@@ -44,26 +48,7 @@ public partial class UCMCatalog
         EnsureValidPagination(data);
         foreach (var item in data!.Items)
         {
-            var fullDescription = await GetCourseDescription(term, 69420);
             output.Add(item);
         }
-    }
-
-    private async Task<string> GetCourseDescription(int term, int courseReferenceNumber)
-    {
-        var courseDescriptionUrl = GenerateURL("searchResults/getCourseDescription");
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
-        response.EnsureSuccessStatusCode();
-        var text = await response.Content.ReadAsStringAsync();
-        return text.Trim();
     }
 }

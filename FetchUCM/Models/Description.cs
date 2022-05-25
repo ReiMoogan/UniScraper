@@ -1,8 +1,10 @@
+using System.IO;
+using System.Net;
 using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class Description
+public class Description : IDBDescription
 {
     internal Description()
     {
@@ -30,5 +32,35 @@ public class Description
     }
     [JsonProperty("department")] public string Department { get; private set; }
     [JsonProperty("departmentCode")] public string DepartmentCode { get; private set; }
-    [JsonProperty("courseDescription")] public string CourseDescription { get; private set; }
+    [JsonProperty("courseDescription")] public string CourseDescriptionRaw { get; private set; }
+    public string CourseDescription
+    {
+        get
+        {
+            var writer = new StringWriter();
+            WebUtility.HtmlDecode(CourseDescriptionRaw, writer);
+            return writer.ToString();
+        }
+    }
+}
+
+public class CourseExtendedAttributes
+{
+    public string CourseNumber { get; init; }
+    public string CourseDescription { get; init; }
+    public override string ToString()
+    {
+        return CourseNumber;
+    }
+}
+
+public interface IDBDescription
+{
+    [JsonProperty("id")] public int Id { get; }
+    public int TermStart { get; }
+    public int TermEnd { get; }
+    public string CourseNumber { get; }
+    [JsonProperty("department")] public string Department { get; }
+    [JsonProperty("departmentCode")] public string DepartmentCode { get; }
+    public string CourseDescription { get; }
 }
