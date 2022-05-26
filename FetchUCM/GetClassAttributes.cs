@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ namespace FetchUCM;
 /// </summary>
 public partial class UCMCatalog
 {
-    private FormUrlEncodedContent WithValues(int term, int courseReferenceNumber)
+    private static FormUrlEncodedContent WithValues(int term, int courseReferenceNumber)
     {
         var values = new Dictionary<string, string>
         {
@@ -35,13 +34,27 @@ public partial class UCMCatalog
         return text.Trim(); // Output is HTML
     }
     
-    public async Task<string> GetSectionBookstoreDetails(int term, int courseReferenceNumber)
+    /// <summary>
+    /// Get bookstore information for a specific course.
+    /// </summary>
+    /// <param name="term">The term to search in.</param>
+    /// <param name="courseReferenceNumber">The CRN for the course.</param>
+    /// <returns>A list of URLs used for the bookstore.</returns>
+    public async Task<IEnumerable<string>> GetSectionBookstoreDetails(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSectionBookstoreDetails", post: true);
         var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
-        return text.Trim(); // Output is HTML
+        
+        var document = new HtmlDocument();
+        document.LoadHtml(text);
+        var bookLinks = document.DocumentNode
+            .SelectNodes("//a")
+            .Select(o => o.GetAttributeValue("href", null))
+            .Where(o => o != null);
+
+        return bookLinks; // Output is a list of links
     }
 
     /// <summary>
@@ -49,26 +62,44 @@ public partial class UCMCatalog
     /// </summary>
     /// <param name="term">The term to search in.</param>
     /// <param name="courseReferenceNumber">The CRN for the course.</param>
-    /// <returns></returns>
+    /// <returns>A description of the given course.</returns>
     public async Task<string> GetCourseDescription(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getCourseDescription", post: true);
         var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         if (!response.IsSuccessStatusCode)
-        {
             return null;
-        }
+        
         var text = await response.Content.ReadAsStringAsync();
-        return text.Trim(); // Output is HTML
+        var document = new HtmlDocument();
+        document.LoadHtml(text);
+        var description = document.DocumentNode
+            .SelectSingleNode("//text()")
+            .InnerText;
+        
+        return description.Trim(); // Output is HTML
     }
     
+    /// <summary>
+    /// Get syllabus information about the class, if it exists.
+    /// </summary>
+    /// <param name="term">The term to search in.</param>
+    /// <param name="courseReferenceNumber">The CRN for the course.</param>
+    /// <returns>Information about a syllabus (or if it doesn't exist).</returns>
     public async Task<string> GetSyllabus(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSyllabus", post: true);
         var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
-        return text.Trim(); // Output is HTML
+        
+        var document = new HtmlDocument();
+        document.LoadHtml(text);
+        var syllabus = document.DocumentNode
+            .SelectSingleNode("//div")
+            .InnerText;
+        
+        return syllabus.Trim(); // Output is text (hopefully)
     }
     
     public async Task<string> GetRestrictions(int term, int courseReferenceNumber)
@@ -80,6 +111,12 @@ public partial class UCMCatalog
         return text.Trim(); // Output is HTML
     }
     
+    /// <summary>
+    /// Get professors and meetings for this class.
+    /// </summary>
+    /// <param name="term">The term to search in.</param>
+    /// <param name="courseReferenceNumber">The CRN for the course.</param>
+    /// <returns>An object that holds a list of both professors and meetings (not <see cref="Faculty"/>).</returns>
     public async Task<IEnumerable<FacultyMeetingTimes>> GetFacultyMeetingTimes(int term, int courseReferenceNumber)
     {
         // Weird naming, so I'll override with this:
@@ -114,9 +151,6 @@ public partial class UCMCatalog
     public async Task<string> GetPrerequisites(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSectionPrerequisites", post: true);
-        
-
-        
         var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
@@ -151,14 +185,24 @@ public partial class UCMCatalog
         var document = new HtmlDocument();
         document.LoadHtml(text);
         var table = document.DocumentNode
-            .SelectNodes("//table/tbody/tr/td[4]") // List is Title, Schedule Type, Section, and CRN.
-            .Select(o => o.InnerHtml)
+            .SelectNodes("//table/tbody/tr/td[4]"); // List is Title, Schedule Type, Section, and CRN.
+
+        if (table == null)
+        {
+            return Enumerable.Empty<int>();
+        }
+        
+        return table.Select(o => o.InnerHtml ?? string.Empty)
             .Select(o => int.TryParse(o, out var numeric) ? numeric : -1) // Only get the numerics, if something weird happens.
             .Where(o => o != -1);
-
-        return table; // Output is a list of CRNs
     }
     
+    /// <summary>
+    /// Get fee information about a class. Unused as of Fall 2022.
+    /// </summary>
+    /// <param name="term">The term to search in.</param>
+    /// <param name="courseReferenceNumber">The CRN for the course.</param>
+    /// <returns>Any fees related to the course.</returns>
     public async Task<string> GetFees(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getFees", post: true);
@@ -169,8 +213,7 @@ public partial class UCMCatalog
         var document = new HtmlDocument();
         document.LoadHtml(text);
         var fees = document.DocumentNode
-            .SelectNodes("//text()")
-            .First()
+            .SelectSingleNode("//text()")
             .InnerText;
         
         return fees.Trim(); // Output is either plain-text or HTML. I don't think UCM uses this.

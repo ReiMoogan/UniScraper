@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json;
@@ -48,6 +49,7 @@ public class CourseExtendedAttributes
 {
     public string CourseNumber { get; init; }
     public string CourseDescription { get; init; }
+
     public override string ToString()
     {
         return CourseNumber;

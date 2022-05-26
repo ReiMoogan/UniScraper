@@ -16,12 +16,13 @@ internal static class Program
         await using var connection = new SqlConnection(config.SqlConnection);
         Console.WriteLine("Opening database connection...");
         await connection.OpenAsync();
+        /*
         Console.WriteLine("Updating classes...");
         var classTask = UpdateUCMClasses.UpdateClasses(connection);
         Console.WriteLine("Updating professors...");
         var profTask = UpdateRMP.UpdateProfessors(connection);
         Console.WriteLine("Waiting for previous two tasks to finish...");
-        await Task.WhenAll(classTask, profTask);
+        await Task.WhenAll(classTask, profTask);*/
         Console.WriteLine("Updating class descriptions...");
         await UpdateUCMDescriptions.UpdateDescriptions(connection);
         Console.WriteLine("Closing database connection...");
