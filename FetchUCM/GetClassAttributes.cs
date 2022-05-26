@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using FetchUCM.Models;
+using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 
 namespace FetchUCM;
@@ -11,10 +14,8 @@ namespace FetchUCM;
 /// </summary>
 public partial class UCMCatalog
 {
-    public async Task<string> GetClassDetails(int term, int courseReferenceNumber)
+    private FormUrlEncodedContent WithValues(int term, int courseReferenceNumber)
     {
-        var courseDescriptionUrl = GenerateURL("searchResults/getClassDetails", post: true);
-        
         var values = new Dictionary<string, string>
         {
             { "term", term.ToString() },
@@ -22,9 +23,13 @@ public partial class UCMCatalog
             { "first", "first" } // ??? what is this
         };
 
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        return new FormUrlEncodedContent(values);
+    }
+    
+    public async Task<string> GetClassDetails(int term, int courseReferenceNumber)
+    {
+        var courseDescriptionUrl = GenerateURL("searchResults/getClassDetails", post: true);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -33,16 +38,7 @@ public partial class UCMCatalog
     public async Task<string> GetSectionBookstoreDetails(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSectionBookstoreDetails", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -57,16 +53,7 @@ public partial class UCMCatalog
     public async Task<string> GetCourseDescription(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getCourseDescription", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         if (!response.IsSuccessStatusCode)
         {
             return null;
@@ -78,16 +65,7 @@ public partial class UCMCatalog
     public async Task<string> GetSyllabus(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSyllabus", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -96,16 +74,7 @@ public partial class UCMCatalog
     public async Task<string> GetRestrictions(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getRestrictions", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -127,16 +96,7 @@ public partial class UCMCatalog
     public async Task<string> GetEnrollmentInfo(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getEnrollmentInfo", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -145,16 +105,7 @@ public partial class UCMCatalog
     public async Task<string> GetCorequisites(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getCorequisites", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -164,15 +115,9 @@ public partial class UCMCatalog
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSectionPrerequisites", post: true);
         
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
 
-        var content = new FormUrlEncodedContent(values);
         
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -181,16 +126,7 @@ public partial class UCMCatalog
     public async Task<string> GetMutualExclusions(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getCourseMutuallyExclusions", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
@@ -199,70 +135,51 @@ public partial class UCMCatalog
     public async Task<string> GetCrosslistedSections(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getXlstSections", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML
     }
     
-    public async Task<string> GetLinkedSections(int term, int courseReferenceNumber)
+    public async Task<IEnumerable<int>> GetLinkedSections(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getLinkedSections", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
-        return text.Trim(); // Output is HTML
+        
+        var document = new HtmlDocument();
+        document.LoadHtml(text);
+        var table = document.DocumentNode
+            .SelectNodes("//table/tbody/tr/td[4]") // List is Title, Schedule Type, Section, and CRN.
+            .Select(o => o.InnerHtml)
+            .Select(o => int.TryParse(o, out var numeric) ? numeric : -1) // Only get the numerics, if something weird happens.
+            .Where(o => o != -1);
+
+        return table; // Output is a list of CRNs
     }
     
     public async Task<string> GetFees(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getFees", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
-        return text.Trim(); // Output is HTML
+        
+        var document = new HtmlDocument();
+        document.LoadHtml(text);
+        var fees = document.DocumentNode
+            .SelectNodes("//text()")
+            .First()
+            .InnerText;
+        
+        return fees.Trim(); // Output is either plain-text or HTML. I don't think UCM uses this.
     }
     
     public async Task<string> GetSectionCatalogDetails(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getSectionCatalogDetails", post: true);
-        
-        var values = new Dictionary<string, string>
-        {
-            { "term", term.ToString() },
-            { "courseReferenceNumber", courseReferenceNumber.ToString() }
-        };
-
-        var content = new FormUrlEncodedContent(values);
-        
-        var response = await _client.PostAsync(courseDescriptionUrl, content);
+        var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
         response.EnsureSuccessStatusCode();
         var text = await response.Content.ReadAsStringAsync();
         return text.Trim(); // Output is HTML

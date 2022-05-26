@@ -99,16 +99,23 @@ public static class UpdateUCMClasses
         Console.WriteLine($"Copied data in {stopwatch.Elapsed.Seconds}s...");
         stopwatch.Restart();
 
-        await connection.ExecuteAsync(
-            "EXEC [UniScraper].[UCM].[MergeUpload];");
+        try
+        {
+            await connection.ExecuteAsync(
+                "EXEC [UniScraper].[UCM].[MergeUpload];");
+            Console.WriteLine($"Merged data in {stopwatch.Elapsed.Seconds}s...");
+            stopwatch.Restart();
 
-        Console.WriteLine($"Merged data in {stopwatch.Elapsed.Seconds}s...");
-        stopwatch.Restart();
-
-        await connection.ExecuteAsync(
-            "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'class';");
-        Console.WriteLine(
-            $"For {term}, updated {classTable.Rows.Count} classes, {professorTable.Rows.Count} professors, and {meetingTable.Rows.Count} meetings!");
+            await connection.ExecuteAsync(
+                "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'class';");
+            Console.WriteLine(
+                $"For {term}, updated {classTable.Rows.Count} classes, {professorTable.Rows.Count} professors, and {meetingTable.Rows.Count} meetings!");
+        }
+        catch (SqlException ex)
+        {
+            Console.WriteLine("Failed to merge data! Might be temporal?");
+            Console.WriteLine(ex);
+        }
     }
     
     private static async Task CreateTemporaryTables(IDbConnection connection)

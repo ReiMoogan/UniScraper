@@ -10,7 +10,7 @@ using FetchUCM.Models;
 
 namespace StandaloneTester;
 
-public class UpdateUCMDescriptions
+public static class UpdateUCMDescriptions
 {
     public static async Task UpdateDescriptions(SqlConnection connection)
     {
