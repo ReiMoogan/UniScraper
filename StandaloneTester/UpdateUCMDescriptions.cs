@@ -18,12 +18,11 @@ public static class UpdateUCMDescriptions
     public static async Task UpdateDescriptions(SqlConnection connection)
     {
         // Only run every so often, so we don't effectively DoS the school.
-        /*
         if (!await TimeToRun(connection))
         {
             Console.WriteLine("Skipping attribute fetching.");
             return;
-        }*/
+        }
         
         // Drop if a previous session crashed mid-way.
         await DropTemporaryTable(connection);
