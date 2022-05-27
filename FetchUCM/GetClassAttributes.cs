@@ -179,7 +179,10 @@ public partial class UCMCatalog
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getLinkedSections", post: true);
         var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            return Enumerable.Empty<int>();
+        }
         var text = await response.Content.ReadAsStringAsync();
         
         var document = new HtmlDocument();
@@ -191,10 +194,12 @@ public partial class UCMCatalog
         {
             return Enumerable.Empty<int>();
         }
-        
+
         return table.Select(o => o.InnerHtml ?? string.Empty)
-            .Select(o => int.TryParse(o, out var numeric) ? numeric : -1) // Only get the numerics, if something weird happens.
-            .Where(o => o != -1);
+            .Select(o =>
+                int.TryParse(o, out var numeric) ? numeric : -1) // Only get the numerics, if something weird happens.
+            .Where(o => o != -1)
+            .Distinct();
     }
     
     /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -20,6 +21,13 @@ public static class UpdateUCMClasses
         
         var catalog = new UCMCatalog();
         var terms = await catalog.GetAllTerms();
+
+        var updateLinkedCourses = await TimeToRun(connection);
+        if (!updateLinkedCourses)
+        {
+            Console.WriteLine("Skipping linked courses.");
+        }
+        
         foreach (var term in terms)
         {
             // Skip read/view-only tables, no need to update static tables.
@@ -28,13 +36,13 @@ public static class UpdateUCMClasses
             Console.WriteLine("Creating temporary databases...");
             await CreateTemporaryTables(connection);
             Console.WriteLine($"Reading from {term.Description}");
-            await UpdateTerm(connection, catalog, term.Code);
+            await UpdateTerm(connection, catalog, term.Code, updateLinkedCourses);
             Console.WriteLine("Dropping temporary databases...");
             await DropTemporaryTables(connection);
         }
     }
 
-    private static async Task UpdateTerm(SqlConnection connection, UCMCatalog catalog, int term)
+    private static async Task UpdateTerm(SqlConnection connection, UCMCatalog catalog, int term, bool updateLinkedCourses = false)
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -113,9 +121,61 @@ public static class UpdateUCMClasses
         }
         catch (SqlException ex)
         {
-            Console.WriteLine("Failed to merge data! Might be temporal?");
+            Console.WriteLine($"Failed to merge data! Might be temporal? Line {ex.LineNumber}");
             Console.WriteLine(ex);
         }
+
+        if (updateLinkedCourses)
+            await UpdateLinkedCourses(connection, catalog, everything);
+    }
+
+    private static async Task UpdateLinkedCourses(SqlConnection connection, UCMCatalog catalog, IEnumerable<Class> everything)
+    {
+        try
+        {
+            Console.WriteLine("Updating linked courses... (please watch warmly)");
+
+            var linkedTable = new DataTable();
+            linkedTable.Columns.Add(new DataColumn("parent", typeof(int)));
+            linkedTable.Columns.Add(new DataColumn("child", typeof(int)));
+
+            everything.AsParallel().ForAll(o =>
+            {
+                var linkedSections = catalog.GetLinkedSections(o.Term, o.CourseReferenceNumber).GetAwaiter().GetResult();
+                foreach (var linked in linkedSections)
+                {
+                    var row = linkedTable.NewRow();
+                    row["parent"] = o.CourseReferenceNumber;
+                    row["child"] = linked;
+                    linkedTable.Rows.Add(row);
+                }
+            });
+
+            using (var copier = new SqlBulkCopy(connection))
+            {
+                copier.DestinationTableName = "#linked_section";
+                copier.ColumnMappings.Add("parent", "parent");
+                copier.ColumnMappings.Add("child", "child");
+                await copier.WriteToServerAsync(linkedTable);
+            }
+
+            await connection.ExecuteAsync("EXEC [UniScraper].[UCM].[MergeLinkedCourses];");
+            await connection.ExecuteAsync(
+                "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'linked_section';");
+            Console.WriteLine($"Created {linkedTable.Rows.Count} links/edges!");
+        }
+        catch (SqlException ex)
+        {
+            Console.WriteLine("Failed to merge data (again)! Might be temporal?");
+            Console.WriteLine(ex);
+        }
+    }
+
+    private static async Task<bool> TimeToRun(IDbConnection connection)
+    {
+        var time = await connection.QueryFirstOrDefaultAsync<int>(
+            "SELECT DATEDIFF(SECOND, last_update, SYSDATETIME()) FROM [UCM].[stats] WHERE table_name = 'linked_section';");
+        return time > 24 * 60 * 60; // Wait every day.
     }
     
     private static async Task CreateTemporaryTables(IDbConnection connection)
@@ -138,6 +198,7 @@ public static class UpdateUCMClasses
                     num_ratings int DEFAULT 0 NOT NULL,
                     rating real DEFAULT 0.0 NOT NULL
                 );
+                SELECT TOP 0 * INTO #linked_section FROM [UniScraper].[UCM].[linked_section];
                 ");
     }
 
@@ -146,7 +207,7 @@ public static class UpdateUCMClasses
         try
         {
             await connection.ExecuteAsync(
-                "DROP TABLE IF EXISTS #class; DROP TABLE IF EXISTS #faculty; DROP TABLE IF EXISTS #meeting; DROP TABLE IF EXISTS #professor;");
+                "DROP TABLE IF EXISTS #class; DROP TABLE IF EXISTS #faculty; DROP TABLE IF EXISTS #meeting; DROP TABLE IF EXISTS #professor; DROP TABLE IF EXISTS #linked_section;");
         }
         catch (Exception)
         {

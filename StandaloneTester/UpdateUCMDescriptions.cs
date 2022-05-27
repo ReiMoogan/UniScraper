@@ -47,25 +47,11 @@ public static class UpdateUCMDescriptions
 
         var crnPairs = await connection.QueryAsync<(string, int, int)>(
             "EXEC [UniScraper].[UCM].[MergeDescription];");
-        
-        var linkedTable = new DataTable();
-        linkedTable.Columns.Add(new DataColumn("parent", typeof(int)));
-        linkedTable.Columns.Add(new DataColumn("child", typeof(int)));
-        
+
         var fetchedPairs = crnPairs.AsParallel().Select(o =>
         {
             var (courseNumber, courseReferenceNumber, term) = o;
             var description = catalog.GetCourseDescription(term, courseReferenceNumber).GetAwaiter().GetResult();
-            
-            var linkedSections = catalog.GetLinkedSections(term, courseReferenceNumber).GetAwaiter().GetResult();
-            foreach (var linked in linkedSections)
-            {
-                var row = linkedTable.NewRow();
-                row["parent"] = courseReferenceNumber;
-                row["child"] = linked;
-                linkedTable.Rows.Add(row);
-            }
-            
             return new CourseExtendedAttributes { CourseNumber = courseNumber, CourseDescription = description };
         }).ToList();
 
@@ -79,10 +65,6 @@ public static class UpdateUCMDescriptions
         await PostCreateTemporaryTable(connection);
         using (var copier = new SqlBulkCopy(connection))
         {
-            copier.DestinationTableName = "#linked_section";
-            copier.ColumnMappings.Add("parent", "parent");
-            copier.ColumnMappings.Add("child", "child");
-            await copier.WriteToServerAsync(linkedTable);
             copier.DestinationTableName = "#description";
             Utilities.MapSql(descriptionTable, copier);
             await copier.WriteToServerAsync(descriptionTable);
@@ -115,8 +97,7 @@ public static class UpdateUCMDescriptions
     {
         await DropTemporaryTable(connection);
         await connection.ExecuteAsync(
-            $@"SELECT TOP 0 * INTO #linked_section FROM [UniScraper].[UCM].[linked_section];
-                CREATE TABLE #description
+            $@"CREATE TABLE #description
                 (
 	                course_number varchar(16) NOT NULL,
 	                course_description varchar({MaxDescriptionLength})
@@ -127,7 +108,7 @@ public static class UpdateUCMDescriptions
     {
         try
         {
-            await connection.ExecuteAsync("DROP TABLE IF EXISTS #description; DROP TABLE IF EXISTS #linked_section;");
+            await connection.ExecuteAsync("DROP TABLE IF EXISTS #description;");
         }
         catch (Exception)
         {
