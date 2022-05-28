@@ -119,21 +119,21 @@ public abstract class HTMLController : ControllerBase
         html.LoadHtml(newPage);
             
         var titleNode = html.DocumentNode.SelectSingleNode("//title");
-        var titleOGNode = html.DocumentNode.SelectSingleNode("//meta[@property='og:title']");
+        var titleOpenGraphNode = html.DocumentNode.SelectSingleNode("//meta[@property='og:title']");
         var descriptionNode = html.DocumentNode.SelectSingleNode("//meta[@name='description']");
-        var descrptionOGNode = html.DocumentNode.SelectSingleNode("//meta[@property='og:description']");
+        var descriptionOpenGraphNode = html.DocumentNode.SelectSingleNode("//meta[@property='og:description']");
             
         if (title != null)
         {
             if (titleNode != null)
                 titleNode.InnerHtml = title;
-            titleOGNode?.SetAttributeValue("content", title);
+            titleOpenGraphNode?.SetAttributeValue("content", title);
         }
             
         if (description != null)
         {
             descriptionNode?.SetAttributeValue("content", description);
-            descrptionOGNode?.SetAttributeValue("content", description);
+            descriptionOpenGraphNode?.SetAttributeValue("content", description);
         }
 
         return html.DocumentNode.OuterHtml;

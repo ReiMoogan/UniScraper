@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using ScrapperCore.Utilities;
 
 namespace ScrapperCore.Controllers.View;
 
-[ApiController]
-[Route("/{**page}")]
 public class MainController : HTMLController
 {
     public MainController(ILogger<MainController> logger, ScrapperConfig config) : base(logger, config)

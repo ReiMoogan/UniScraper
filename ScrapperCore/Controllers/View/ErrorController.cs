@@ -1,18 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using ScrapperCore.Utilities;
 
 namespace ScrapperCore.Controllers.View;
 
 [ApiController]
-[Route("/Error/{id:int}")]
-public class ErrorController : ControllerBase
+[ApiExplorerSettings(IgnoreApi = true)]
+[Route("/Error/{code}")]
+public class ErrorController : HTMLController
 {
+    public ErrorController(ILogger<ErrorController> logger, ScrapperConfig config) : base(logger, config)
+    {
+    }
+    
+    protected override void SetupRouter()
+    {
+        Router.Clear();
+        AddFolderToRouter("", "StaticViews/views/error");
+    }
+    
     [HttpGet]
-    public ContentResult Get(int code)
+    public override async Task<IActionResult> Get(string code)
     {
         var file = $"StaticViews/views/error/{code}.html";
         if (!System.IO.File.Exists(file))
-            file = "StaticViews/views/error/500.html";
-        var data = System.IO.File.ReadAllText(file);
-        return base.Content(data, "text/html");
+            return await base.Get("500.html");
+        return await base.Get($"{code}.html");
     }
 }
