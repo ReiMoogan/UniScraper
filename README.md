@@ -4,7 +4,7 @@ It's basically BobcatCourses's backend but made by some naïve freshman.
 ## But why?
 Why not?
 
-Well, Elulucian Banner decided to update to a slightly more modern interface, meaning you *kinda* get JSON output.
+Well, Ellucian Banner decided to update to a slightly more modern interface, meaning you *kinda* get JSON output.
 Better than HTML parsing, until you realize they mixed that in.
 Honestly, I developed this repo because I wanted play with databases.
 
@@ -19,7 +19,7 @@ V1 of the API is an attempt to be backwards-compatible with BobcatCourses. If I 
 Due to the different data sources, the API is a from-scratch rewrite, so data differences will likely occur.
 
 ### `db` branch
-(Assuming one exists,) this branch contains a Visual Studio Database Project, which contains the table structures and Stored Procedures/Functions used.
+This branch contains a Visual Studio Database Project, which contains the table structures and Stored Procedures/Functions used.
 This can be used to set up a database if the project is to be replicated. Note that this is designed in SQL Server (with full-text search).
 Porting to MySQL or Postgres is not my top priority.
 
