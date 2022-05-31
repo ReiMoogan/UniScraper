@@ -26,6 +26,8 @@ public class Class
     public string FinalDates { get; init; }
     public string SimpleName { get; init; }
     public string LinkedCourses { get; init; }
-    public string Lecture { get; init; }
+    // Apparently this is equivalent to LectureCrn... WHY????
+    public string Lecture => LectureCrn;
+    // Honestly have no idea what this is supposed to represent, they're all NULL as of 202230 on the old courses API.
     public string Discussion { get; init; }
 }
