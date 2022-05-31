@@ -1,0 +1,8 @@
+# Caused by switching branches
+.idea/
+FetchRateMyProf/
+FetchUCM/
+ScrapperCore/
+StandaloneTester/
+*.user
+config.json
