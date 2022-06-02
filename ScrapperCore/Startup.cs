@@ -58,10 +58,16 @@ public class Startup
             endpoints.MapSwagger();
         });
 
-        app.UseSwagger();
+        app.UseSwagger(c =>
+        {
+            c.RouteTemplate = "api/{documentName}/swagger.json";
+        });
+        
         app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "UCMScraper API v1");
+            c.SwaggerEndpoint("v1/swagger.json", "UCMScraper API v1");
+            c.RoutePrefix = "api";
+            c.DocumentTitle = "UniScraper API Docs";
         });
     }
 }

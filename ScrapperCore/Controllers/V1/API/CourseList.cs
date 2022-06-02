@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +23,18 @@ public class CourseList : ControllerBase
     {
         _config = config;
     }
+
+    private int DefaultTerm()
+    {
+        var now = DateTime.Now;
+        var semester = now.Month switch
+        {
+            <= 4 and >= 1 => 10, // Jan to Apr: Fall
+            <= 7 and >= 5 => 20, // May to Jul: Summer
+            _ => 30 // Aug to Dec: Winter
+        };
+        return now.Year * 100 + semester;
+    }
     
     [HttpGet]
     [Route("courses-list")]
@@ -26,8 +43,8 @@ public class CourseList : ControllerBase
         Description = "May contain zeroes for backwards-compatibility/stubbing."
     )]
     public async Task<CoursePagination> Get(
-        [FromQuery] int? crn = null,
-        [FromQuery] string subject = null,
+        [FromQuery(Name = "crn")] int? crn = null,
+        [FromQuery(Name = "subject")] string subject = null,
         [FromQuery(Name = "course_id")] string courseId = null,
         [FromQuery(Name = "course_name")] string courseName = null,
         [FromQuery(Name = "units")] int? units = null,
@@ -55,11 +72,51 @@ public class CourseList : ControllerBase
     )
     {
         await using var connection = new SqlConnection(_config.SqlConnection);
-        var classes = await connection.QueryAsync<Class>(@"
-            DROP TABLE IF EXISTS #crn;
-            SELECT course_reference_number AS crn INTO #crn FROM [UCM].[class] WHERE term = 202230;
-            EXEC [UCM].[GetCourses];
-        ");
+
+        term ??= DefaultTerm(); // At least filter *some* records.
+
+        var parameters = new
+        {
+            crn, subject, courseId, courseName, units, type, days, hours, room, dates, instructor,
+            lecture, lecture_crn = lectureCRN, discussion, attached_crn = attachedCRN, term, capacity, enrolled,
+            available, final_type = finalType, final_days = finalDays, final_hours = finalHours, final_room = finalRoom,
+            final_dates = finalDates, simple_name = simpleName, linked_courses = linkedCourses
+        };
+        
+        var sqlPredicates = new List<string>();
+        var queryParams = new DynamicParameters();
+        var methodParameters = MethodBase.GetCurrentMethod().GetParameters();
+
+        foreach (var parameter in parameters.GetType().GetProperties())
+        {
+            var value = parameter.GetValue(parameters);
+            if (value == null)
+                continue;
+
+            var methodParameter = methodParameters.SingleOrDefault(o => o.Name == parameter.Name);
+            var queryAttribute = methodParameter?.GetCustomAttribute<FromQueryAttribute>();
+            // Assert that there exists a name attributed, otherwise use the parameter's name.
+            var name = queryAttribute is { Name: { } } ? queryAttribute.Name! : parameter.Name;
+            
+            sqlPredicates.Add($"{name} = @{name}");
+
+            switch (value)
+            {
+                case int i:
+                    queryParams.Add(name, i, DbType.Int32);
+                    break;
+                case string s:
+                    queryParams.Add(name, s, DbType.String);
+                    break;
+                default:
+                    throw new Exception("Bruh?");
+            }
+        }
+
+        var sql = $@"
+            SELECT * FROM [UCM].[v1api] {(sqlPredicates.Count == 0 ? "" : "WHERE")} {string.Join(" AND ", sqlPredicates)};
+        ";
+        var classes = await connection.QueryAsync<Class>(sql, queryParams);
         return new CoursePagination(classes);
     }
 }
