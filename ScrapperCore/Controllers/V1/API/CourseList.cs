@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -85,7 +83,6 @@ public class CourseList : ControllerBase
         
         var sqlPredicates = new List<string>();
         var queryParams = new DynamicParameters();
-        var methodParameters = MethodBase.GetCurrentMethod().GetParameters();
 
         foreach (var parameter in parameters.GetType().GetProperties())
         {
@@ -93,11 +90,7 @@ public class CourseList : ControllerBase
             if (value == null)
                 continue;
 
-            var methodParameter = methodParameters.SingleOrDefault(o => o.Name == parameter.Name);
-            var queryAttribute = methodParameter?.GetCustomAttribute<FromQueryAttribute>();
-            // Assert that there exists a name attributed, otherwise use the parameter's name.
-            var name = queryAttribute is { Name: { } } ? queryAttribute.Name! : parameter.Name;
-            
+            var name = parameter.Name;
             sqlPredicates.Add($"{name} = @{name}");
 
             switch (value)

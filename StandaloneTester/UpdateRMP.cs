@@ -46,9 +46,6 @@ public static class UpdateRMP
         await connection.ExecuteAsync(
             "EXEC [UniScraper].[UCM].[MergeRMP];");
         await DropRMPTemporaryTables(connection);
-
-        await connection.ExecuteAsync(
-            "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'professor';");
         Console.WriteLine($"Updated {noDuplicates.Count} professors!");
     }
     

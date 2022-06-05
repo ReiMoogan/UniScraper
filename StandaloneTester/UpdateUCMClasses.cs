@@ -113,9 +113,7 @@ public static class UpdateUCMClasses
                 "EXEC [UniScraper].[UCM].[MergeUpload];");
             Console.WriteLine($"Merged data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();
-
-            await connection.ExecuteAsync(
-                "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'class';");
+            
             Console.WriteLine(
                 $"For {term}, updated {classTable.Rows.Count} classes, {professorTable.Rows.Count} professors, and {meetingTable.Rows.Count} meetings!");
         }
@@ -129,17 +127,21 @@ public static class UpdateUCMClasses
             await UpdateLinkedCourses(connection, catalog, everything);
     }
 
-    private static async Task UpdateLinkedCourses(SqlConnection connection, UCMCatalog catalog, IEnumerable<Class> everything)
+    private static async Task UpdateLinkedCourses(SqlConnection connection, UCMCatalog catalog, List<Class> everything)
     {
         try
         {
             Console.WriteLine("Updating linked courses... (please watch warmly)");
 
+            await DropTemporaryTables(connection);
+            await CreateTemporaryTables(connection);
+            
             var linkedTable = new DataTable();
             linkedTable.Columns.Add(new DataColumn("parent", typeof(int)));
             linkedTable.Columns.Add(new DataColumn("child", typeof(int)));
 
-            everything.AsParallel().ForAll(o =>
+            var numProcessed = 0;
+            everything.AsParallel().WithDegreeOfParallelism(16).ForAll(o =>
             {
                 var linkedSections = catalog.GetLinkedSections(o.Term, o.CourseReferenceNumber).GetAwaiter().GetResult();
                 foreach (var linked in linkedSections)
@@ -149,6 +151,10 @@ public static class UpdateUCMClasses
                     row["child"] = linked;
                     linkedTable.Rows.Add(row);
                 }
+
+                ++numProcessed;
+                if (numProcessed % 100 == 0)
+                    Console.WriteLine($"{numProcessed}/{everything.Count} done...");
             });
 
             using (var copier = new SqlBulkCopy(connection))
@@ -160,8 +166,6 @@ public static class UpdateUCMClasses
             }
 
             await connection.ExecuteAsync("EXEC [UniScraper].[UCM].[MergeLinkedCourses];");
-            await connection.ExecuteAsync(
-                "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'linked_section';");
             Console.WriteLine($"Created {linkedTable.Rows.Count} links/edges!");
         }
         catch (SqlException ex)

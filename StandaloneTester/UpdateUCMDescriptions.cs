@@ -72,9 +72,6 @@ public static class UpdateUCMDescriptions
         
         await connection.ExecuteAsync("EXEC [UniScraper].[UCM].[PostMergeDescription];");
         await DropTemporaryTable(connection);
-
-        await connection.ExecuteAsync(
-            "UPDATE UniScraper.UCM.stats SET last_update = SYSDATETIME() WHERE table_name = 'description';");
         Console.WriteLine($"Updated {descriptionTable.Rows.Count} descriptions!");
     }
 
