@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class FacultyMeetingTimes
+public record FacultyMeetingTimes
 {
     [JsonProperty("courseReferenceNumber")] public string CourseReferenceNumberRaw { get; private set; }
     public int CourseReferenceNumber => int.Parse(CourseReferenceNumberRaw);

@@ -8,7 +8,7 @@ namespace FetchUCM.Models;
 public enum MeetingType : byte { Lecture = 1, Discussion = 2, Lab = 3, Fieldwork = 4, Seminar = 5, IndividualStudy = 6, Tutorial = 7, Studio = 8, Practicum = 9, Exam = 10, Project = 11, Internship = 12 }
 [Flags] public enum Days : byte { Base = 0, Sunday = 1, Monday = 2, Tuesday = 4, Wednesday = 8, Thursday = 16, Friday = 32, Saturday = 64 }
     
-public class MeetingTime : IDBMeetingTime
+public record MeetingTime : IDBMeetingTime
 {
     internal MeetingTime()
     {
@@ -103,7 +103,7 @@ public interface IDBMeetingTime
     public MeetingType MeetingType { get; }
 }
 
-public class DBMeetingTime : IDBMeetingTime
+public record DBMeetingTime : IDBMeetingTime
 {
     public DBMeetingTime(int classId, IDBMeetingTime db)
     {

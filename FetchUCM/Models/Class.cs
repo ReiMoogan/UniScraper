@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class Class : IDBClass
+public record Class : IDBClass
 {
     internal Class()
     {

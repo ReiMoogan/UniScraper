@@ -29,7 +29,7 @@ public static class UpdateUCMDescriptions
         
         var catalog = new UCMCatalog();
         var terms = await catalog.GetAllTerms();
-        var descriptions = await catalog.GetAllDescriptions(terms.Last().Code);
+        var descriptions = await catalog.GetAllDescriptions(terms.First().Code);
         var reduced = descriptions.Select(o => (IDBDescription) o);
         var descriptionTable = new DataTable();
         

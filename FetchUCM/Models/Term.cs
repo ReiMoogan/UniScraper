@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class Term
+public record Term
 {
     internal Term()
     {

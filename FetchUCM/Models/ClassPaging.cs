@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-internal class ClassPaging : IPageable<Class>
+internal record ClassPaging : IPageable<Class>
 {
     [JsonProperty("success")] public bool Success { get; private set; }
     [JsonProperty("totalCount")] public int TotalCount { get; private set; }

@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class Description : IDBDescription
+public record Description : IDBDescription
 {
     internal Description()
     {
@@ -44,7 +44,7 @@ public class Description : IDBDescription
     }
 }
 
-public class CourseExtendedAttributes
+public record CourseExtendedAttributes
 {
     public string CourseNumber { get; init; }
     public string CourseDescription { get; init; }

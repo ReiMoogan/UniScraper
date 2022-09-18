@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class Professor : IDBProfessor
+public record Professor : IDBProfessor
 {
     internal Professor()
     {

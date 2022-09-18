@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
 
-public class Meeting
+public record Meeting
 {
     internal Meeting()
     {
