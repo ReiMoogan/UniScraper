@@ -22,7 +22,7 @@ public class CourseList : ControllerBase
         _config = config;
     }
 
-    private int DefaultTerm()
+    private static int DefaultTerm()
     {
         var now = DateTime.Now;
         var semester = now.Month switch
@@ -40,7 +40,7 @@ public class CourseList : ControllerBase
         Summary = "Fetch all of the courses for the current term (by default).",
         Description = "May contain zeroes for backwards-compatibility/stubbing."
     )]
-    public async Task<CoursePagination> Get(
+    public async Task<Paginate<Class>> Get(
         [FromQuery(Name = "crn")] int? crn = null,
         [FromQuery(Name = "subject")] string subject = null,
         [FromQuery(Name = "course_id")] string courseId = null,
@@ -102,7 +102,7 @@ public class CourseList : ControllerBase
                     queryParams.Add(name, s, DbType.String);
                     break;
                 default:
-                    throw new Exception("Bruh?");
+                    throw new Exception($"Unable to parse parameter query of {value.GetType()}");
             }
         }
 
@@ -110,6 +110,6 @@ public class CourseList : ControllerBase
             SELECT * FROM [UCM].[v1api] {(sqlPredicates.Count == 0 ? "" : "WHERE")} {string.Join(" AND ", sqlPredicates)};
         ";
         var classes = await connection.QueryAsync<Class>(sql, queryParams);
-        return new CoursePagination(classes);
+        return new Paginate<Class>(classes);
     }
 }
