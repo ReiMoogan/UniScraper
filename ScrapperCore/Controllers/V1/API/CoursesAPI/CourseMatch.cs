@@ -5,22 +5,12 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using ScrapperCore.Models.V1;
-using ScrapperCore.Utilities;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace ScrapperCore.Controllers.V1.API.Courses;
+namespace ScrapperCore.Controllers.V1.API.CoursesAPI;
 
-[ApiController]
-[Route("v1/api/courses")]
-public class CourseMatch : ControllerBase
+public partial class Courses
 {
-    private readonly ScrapperConfig _config;
-
-    public CourseMatch(ScrapperConfig config)
-    {
-        _config = config;
-    }
-
     [HttpPost]
     [Route("course-match")]
     [SwaggerOperation(

@@ -135,7 +135,8 @@ public static class UpdateUCMClasses
 
             await DropTemporaryTables(connection);
             await CreateTemporaryTables(connection);
-            
+
+            var lockObject = new object();
             var linkedTable = new DataTable();
             linkedTable.Columns.Add(new DataColumn("parent", typeof(int)));
             linkedTable.Columns.Add(new DataColumn("child", typeof(int)));
@@ -144,12 +145,15 @@ public static class UpdateUCMClasses
             everything.AsParallel().WithDegreeOfParallelism(16).ForAll(o =>
             {
                 var linkedSections = catalog.GetLinkedSections(o.Term, o.CourseReferenceNumber).GetAwaiter().GetResult();
-                foreach (var linked in linkedSections)
+                lock (lockObject) // DataTables are not thread-safe, so we load HTTP results in different threads and store synchronously.
                 {
-                    var row = linkedTable.NewRow();
-                    row["parent"] = o.CourseReferenceNumber;
-                    row["child"] = linked;
-                    linkedTable.Rows.Add(row);
+                    foreach (var linked in linkedSections)
+                    {
+                        var row = linkedTable.NewRow();
+                        row["parent"] = o.CourseReferenceNumber;
+                        row["child"] = linked;
+                        linkedTable.Rows.Add(row);
+                    }
                 }
 
                 ++numProcessed;

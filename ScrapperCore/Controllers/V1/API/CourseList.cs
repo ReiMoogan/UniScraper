@@ -16,24 +16,12 @@ namespace ScrapperCore.Controllers.V1.API;
 public class CourseList : ControllerBase
 {
     private readonly ScrapperConfig _config;
-    
+
     public CourseList(ScrapperConfig config)
     {
         _config = config;
     }
 
-    private static int DefaultTerm()
-    {
-        var now = DateTime.Now;
-        var semester = now.Month switch
-        {
-            <= 4 and >= 1 => 10, // Jan to Apr: Fall
-            <= 7 and >= 5 => 20, // May to Jul: Summer
-            _ => 30 // Aug to Dec: Winter
-        };
-        return now.Year * 100 + semester;
-    }
-    
     [HttpGet]
     [Route("courses-list")]
     [SwaggerOperation(
@@ -71,7 +59,7 @@ public class CourseList : ControllerBase
     {
         await using var connection = new SqlConnection(_config.SqlConnection);
 
-        term ??= DefaultTerm(); // At least filter *some* records.
+        term ??= V1Utilities.DefaultTerm(); // At least filter *some* records.
 
         var parameters = new
         {

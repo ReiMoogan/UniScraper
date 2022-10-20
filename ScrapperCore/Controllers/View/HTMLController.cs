@@ -55,12 +55,11 @@ public abstract class HTMLController : ControllerBase
         if(Router.Count == 0)
             SetupRouter();
             
-        page ??= "";
         page = page.ToLower();
         try
         {
             var found = Router.TryGetValue(page, out var file);
-            if (!found)
+            if (!found || file == null)
                 throw new FileNotFoundException();
                 
             if(file.EndsWith("html"))
@@ -89,8 +88,8 @@ public abstract class HTMLController : ControllerBase
         if (!file.EndsWith("html"))
             return text;
             
-        string title = null;
-        string description = null;
+        string? title = null;
+        string? description = null;
             
         var evaluator = new MatchEvaluator(match =>
         {
@@ -160,7 +159,7 @@ public abstract class HTMLController : ControllerBase
                 
             var config = obj["config"]?.ToString();
             if (config != null)
-                return (TemplateCode.Config, _config.RawData[config]?.ToString());
+                return (TemplateCode.Config, _config.RawData[config]?.ToString() ?? "");
                 
             throw new JsonException("Could not understand command!");
         }

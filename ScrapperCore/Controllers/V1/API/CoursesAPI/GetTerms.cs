@@ -3,28 +3,18 @@ using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
-using ScrapperCore.Utilities;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace ScrapperCore.Controllers.V1.API.Courses;
+namespace ScrapperCore.Controllers.V1.API.CoursesAPI;
 
-[ApiController]
-[Route("v1/api/courses")]
-public class GetTerms : ControllerBase
+public partial class Courses
 {
-    private readonly ScrapperConfig _config;
-
-    public GetTerms(ScrapperConfig config)
-    {
-        _config = config;
-    }
-
     [HttpGet]
     [Route("get-terms")]
     [SwaggerOperation(
         Summary = "Fetch all available terms."
     )]
-    public async Task<IEnumerable<string>> Get()
+    public async Task<IEnumerable<string>> GetTerms()
     {
         await using var connection = new SqlConnection(_config.SqlConnection);
 
