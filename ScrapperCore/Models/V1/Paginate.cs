@@ -13,7 +13,7 @@ public class Paginate<T>
 
     [JsonProperty("count")] public int Count => Results.Count();
     // Honestly do not know what these two are, since they're always null. Hm.
-    [JsonProperty("next")] public object Next { get; init; }
-    [JsonProperty("previous")] public object Previous { get; init; }
+    [JsonProperty("next")] public object? Next { get; init; }
+    [JsonProperty("previous")] public object? Previous { get; init; }
     [JsonProperty("results")] public IEnumerable<T> Results { get; init; }
 }

@@ -28,7 +28,7 @@ public partial class UCMCatalog
         Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36");
     }
         
-    public UCMCatalog(HttpClient client = null)
+    public UCMCatalog(HttpClient? client = null)
     {
         _client = client ?? Client;
     }
@@ -60,7 +60,7 @@ public partial class UCMCatalog
         return $"{baseUrl}?{args}sortColumn=subjectDescription&sortDirection=asc";
     }
 
-    private static void EnsureValidPagination<T>(IPageable<T> data)
+    private static void EnsureValidPagination<T>(IPageable<T>? data)
     {
         if (data == null)
             throw new InvalidOperationException("Did not get a JSON response querying for classes!");

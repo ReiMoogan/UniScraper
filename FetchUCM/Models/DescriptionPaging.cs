@@ -1,3 +1,4 @@
+using System;
 using Newtonsoft.Json;
 
 namespace FetchUCM.Models;
@@ -9,5 +10,5 @@ internal record DescriptionPaging : IPageable<Description>
     [JsonProperty("pageOffset")] public int PageOffset { get; private set; }
     [JsonProperty("pageMaxSize")] public int PageMaxSize { get; private set; }
     [JsonProperty("coursesFetchedCount")] public int SectionsFetchedCount { get; private set; }
-    [JsonProperty("data")] public Description[] Items { get; private set; }
+    [JsonProperty("data")] public Description[] Items { get; private set; } = Array.Empty<Description>();
 }

@@ -1,12 +1,12 @@
+﻿namespace StandaloneTester;
+
 using System;
 using System.Data.SqlClient;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace ScrapperCore.Utilities;
-
-public class ScrapperConfig
+public class Config
 {
     [JsonProperty] public int Port { get; private set; }
     [JsonProperty] public string SqlServer { get; private set; }
@@ -31,21 +31,21 @@ public class ScrapperConfig
     }
     [JsonIgnore] public JObject RawData { get; private set; }
 
-    private ScrapperConfig()
+    private Config()
     {
-        SqlServer = "127.0.0.1";
-        SqlPassword = "";
         Port = 5003;
         SqlPort = 1433;
+        SqlServer = "127.0.0.1";
+        SqlPassword = "";
         RawData = new JObject();
     }
-        
-    public static ScrapperConfig Load(string file = "config.json")
+
+    public static Config Load(string file = "config.json")
     {
         var json = "{}";
         if (File.Exists(file))
             json = File.ReadAllText(file);
-        var config = new ScrapperConfig();
+        var config = new Config();
         JsonConvert.PopulateObject(json, config);
         config.RawData = JObject.Parse(json);
         // Update config, so we can bring in new changes if there are updates.
@@ -58,7 +58,7 @@ public class ScrapperConfig
         File.WriteAllText(file, JsonConvert.SerializeObject(this, Formatting.Indented));
     }
 
-    public ScrapperConfig Verify()
+    public Config Verify()
     {
         if (Port is not (>= 1 and <= 65535))
             throw new InvalidOperationException($"Invalid port number in config! ({Port}");

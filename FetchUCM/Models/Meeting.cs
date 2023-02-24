@@ -4,9 +4,11 @@ namespace FetchUCM.Models;
 
 public record Meeting
 {
-    internal Meeting()
+    [JsonConstructor]
+    internal Meeting(Professor[] faculty, MeetingTime time)
     {
-            
+        Faculty = faculty;
+        Time = time;
     }
 
     [JsonProperty("faculty")] public Professor[] Faculty { get; private set; }

@@ -15,25 +15,28 @@ public record MeetingTime : IDBMeetingTime
             
     }
         
-    [JsonProperty("beginTime")] public string BeginTime { get; private set; }
-    [JsonProperty("endTime")] public string EndTime { get; private set; }
-    [JsonProperty("startDate")] public string BeginDate { get; private set; }
-    [JsonProperty("endDate")] public string EndDate { get; private set; }
+    [JsonProperty("beginTime")] public string? BeginTime { get; private set; }
+    [JsonProperty("endTime")] public string? EndTime { get; private set; }
+    [JsonProperty("startDate")] public string BeginDate { get; private set; } = null!;
+    [JsonProperty("endDate")] public string EndDate { get; private set; } = null!;
         
-    [JsonProperty("building")] public string Building { get; private set; }
-    [JsonProperty("buildingDescription")] public string BuildingDescriptionRaw { get; private set; }
-    public string BuildingDescription
+    [JsonProperty("building")] public string? Building { get; private set; }
+    [JsonProperty("buildingDescription")] public string? BuildingDescriptionRaw { get; private set; }
+    public string? BuildingDescription
     {
         get
         {
+            if (BuildingDescriptionRaw == null)
+                return null;
+
             var writer = new StringWriter();
             WebUtility.HtmlDecode(BuildingDescriptionRaw, writer);
             return writer.ToString();
         }
     }
-    [JsonProperty("campus")] public string Campus { get; private set; }
-    [JsonProperty("campusDescription")] public string CampusDescription { get; private set; }
-    [JsonProperty("room")] public string Room { get; private set; }
+    [JsonProperty("campus")] public string? Campus { get; private set; }
+    [JsonProperty("campusDescription")] public string? CampusDescription { get; private set; }
+    [JsonProperty("room")] public string? Room { get; private set; }
     [JsonProperty("creditHourSession")] public float CreditHourSession { get; private set; }
     [JsonProperty("hoursWeek")] public byte HoursPerWeek { get; private set; }
         
@@ -60,9 +63,9 @@ public record MeetingTime : IDBMeetingTime
             return temp;
         }
     }
-        
-    [JsonProperty("meetingType")] public string MeetingTypeRaw { get; private set; }
-    [JsonProperty("meetingTypeDescription")] public string MeetingTypeDescription { get; private set; }
+
+    [JsonProperty("meetingType")] public string MeetingTypeRaw { get; private set; } = null!;
+    [JsonProperty("meetingTypeDescription")] public string MeetingTypeDescription { get; private set; } = "";
     public MeetingType MeetingType {
         get
         {
@@ -88,15 +91,15 @@ public record MeetingTime : IDBMeetingTime
 
 public interface IDBMeetingTime
 {
-    [JsonProperty("beginTime")] public string BeginTime { get; }
-    [JsonProperty("endTime")] public string EndTime { get; }
+    [JsonProperty("beginTime")] public string? BeginTime { get; }
+    [JsonProperty("endTime")] public string? EndTime { get; }
     [JsonProperty("startDate")] public string BeginDate { get; }
     [JsonProperty("endDate")] public string EndDate { get; }
-    [JsonProperty("building")] public string Building { get; }
-    public string BuildingDescription { get; }
-    [JsonProperty("campus")] public string Campus { get; }
-    [JsonProperty("campusDescription")] public string CampusDescription { get; }
-    [JsonProperty("room")] public string Room { get; }
+    [JsonProperty("building")] public string? Building { get; }
+    public string? BuildingDescription { get; }
+    [JsonProperty("campus")] public string? Campus { get; }
+    [JsonProperty("campusDescription")] public string? CampusDescription { get; }
+    [JsonProperty("room")] public string? Room { get; }
     [JsonProperty("creditHourSession")] public float CreditHourSession { get; }
     [JsonProperty("hoursWeek")] public byte HoursPerWeek { get; }
     public Days InSession { get; }
@@ -124,15 +127,15 @@ public record DBMeetingTime : IDBMeetingTime
     }
         
     public int ClassId { get; }
-    public string BeginTime { get; }
-    public string EndTime { get; }
+    public string? BeginTime { get; }
+    public string? EndTime { get; }
     public string BeginDate { get; }
     public string EndDate { get; }
-    public string Building { get; }
-    public string BuildingDescription { get; }
-    public string Campus { get; }
-    public string CampusDescription { get; }
-    public string Room { get; }
+    public string? Building { get; }
+    public string? BuildingDescription { get; }
+    public string? Campus { get; }
+    public string? CampusDescription { get; }
+    public string? Room { get; }
     public float CreditHourSession { get; }
     public byte HoursPerWeek { get; }
     public Days InSession { get; }

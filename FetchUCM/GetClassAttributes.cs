@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -63,7 +64,7 @@ public partial class UCMCatalog
     /// <param name="term">The term to search in.</param>
     /// <param name="courseReferenceNumber">The CRN for the course.</param>
     /// <returns>A description of the given course.</returns>
-    public async Task<string> GetCourseDescription(int term, int courseReferenceNumber)
+    public async Task<string?> GetCourseDescription(int term, int courseReferenceNumber)
     {
         var courseDescriptionUrl = GenerateURL("searchResults/getCourseDescription", post: true);
         var response = await _client.PostAsync(courseDescriptionUrl, WithValues(term, courseReferenceNumber));
@@ -126,8 +127,8 @@ public partial class UCMCatalog
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadAsStringAsync();
         var parsed = JObject.Parse(json);
-        var array = (JArray) parsed["fmt"];
-        return array?.ToObject<IEnumerable<FacultyMeetingTimes>>();
+        var array = (JArray?) parsed["fmt"];
+        return array?.ToObject<IEnumerable<FacultyMeetingTimes>>() ?? Array.Empty<FacultyMeetingTimes>();
     }
     
     public async Task<string> GetEnrollmentInfo(int term, int courseReferenceNumber)

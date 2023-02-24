@@ -18,10 +18,10 @@ public partial class Courses
         Summary = "Fetch all course descriptions."
     )]
     public async Task<Paginate<SubjectCourse>> GetCourseDump(
-        [FromQuery(Name = "course_name")] string courseName = null,
+        [FromQuery(Name = "course_name")] string? courseName = null,
         [FromQuery(Name = "term")] int? term = null,
-        [FromQuery(Name = "course_description")] string courseDescription = null,
-        [FromQuery(Name = "course_subject")] string courseSubject = null
+        [FromQuery(Name = "course_description")] string? courseDescription = null,
+        [FromQuery(Name = "course_subject")] string? courseSubject = null
     )
     {
         var parameters = new

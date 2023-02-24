@@ -8,6 +8,11 @@ namespace FetchUCM;
 
 public partial class UCMCatalog
 {
+    /// <summary>
+    /// Get all available classes for the term.
+    /// </summary>
+    /// <param name="term">The term as an integer, such as 202230.</param>
+    /// <returns>A list of classes.</returns>
     public async Task<IEnumerable<Class>> GetAllClasses(int term)
     {
         await GetCookie(term);

@@ -10,7 +10,7 @@ public class School
     private readonly int _schoolId;
     private readonly HttpClient _client;
 
-    internal School(int schoolId, HttpClient client = null)
+    internal School(int schoolId, HttpClient? client = null)
     {
         _schoolId = schoolId;
         _client = client ?? new HttpClient();
@@ -25,6 +25,11 @@ public class School
         => GetPageable<ProfessorPaging, Professor>(
             $"https://www.ratemyprofessors.com/filter/professor/?&page={{0}}&filter=teacherlastname_sort_s+asc&query=*%3A*&queryoption=TEACHER&queryBy=schoolId&sid={_schoolId}");
 
+    /// <summary>
+    /// Get all reviews for a specific professor.
+    /// </summary>
+    /// <param name="professorId">The Rate My Professor ID for the professor.</param>
+    /// <returns>A list of reviews.</returns>
     public async IAsyncEnumerable<Review> GetAllReviews(int professorId)
     {
         var enumerable = GetPageable<ReviewPaging, Review>(
@@ -34,6 +39,14 @@ public class School
                 yield return item;
     }
 
+    /// <summary>
+    /// Go through all pages of a formatted URL.
+    /// </summary>
+    /// <param name="url">A URL, with one {} to inject a page number in (for string.Format).</param>
+    /// <typeparam name="T">The paged type. Must implement <see cref="IPageable{T}"/>.</typeparam>
+    /// <typeparam name="TU">The item to return from the paged type. Must be the same generic implementation.</typeparam>
+    /// <returns>A list of items of type <see cref="TU"/>.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if Rate My Professor gives us invalid data.</exception>
     private async IAsyncEnumerable<TU> GetPageable<T, TU>(string url) where T : IPageable<TU>
     {
         var pageNum = 1;

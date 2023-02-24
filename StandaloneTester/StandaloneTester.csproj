@@ -2,20 +2,21 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Dapper" Version="2.0.123" />
-      <PackageReference Include="FastMember.Signed" Version="1.5.0" />
-      <PackageReference Include="System.Data.SqlClient" Version="4.8.4" />
-      <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+        <PackageReference Include="Dapper" Version="2.0.123" />
+        <PackageReference Include="FastMember.Signed" Version="1.5.0" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ScrapperCore\ScrapperCore.csproj" />
+        <ProjectReference Include="..\FetchUCM\FetchUCM.csproj" />
+        <ProjectReference Include="..\FetchRateMyProf\FetchRateMyProf.csproj" />
     </ItemGroup>
 
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json;
@@ -12,16 +13,16 @@ public record Class : IDBClass
     }
         
     [JsonProperty("id")] public int Id { get; private set; }
-    [JsonProperty("term")] public string TermRaw { get; private set; }
+    [JsonProperty("term")] public string TermRaw { get; private set; } = null!;
     public int Term => int.Parse(TermRaw);
-    [JsonProperty("termDesc")] public string TermDescription { get; private set; }
-    [JsonProperty("partOfTerm")] public string PartOfTerm { get; private set; }
+    [JsonProperty("termDesc")] public string? TermDescription { get; private set; }
+    [JsonProperty("partOfTerm")] public string? PartOfTerm { get; private set; }
     // Why are they storing it as a string?
-    [JsonProperty("courseReferenceNumber")] public string CourseReferenceNumberRaw { get; private set; }
+    [JsonProperty("courseReferenceNumber")] public string CourseReferenceNumberRaw { get; private set; } = null!;
     public int CourseReferenceNumber => int.Parse(CourseReferenceNumberRaw);
-    [JsonProperty("subject")] public string Subject { get; private set; }
-    [JsonProperty("courseNumber")] public string CourseNumberRaw { get; private set; }
-    [JsonProperty("sequenceNumber")] public string SequenceNumber { get; private set; }
+    [JsonProperty("subject")] public string Subject { get; private set; } = null!;
+    [JsonProperty("courseNumber")] public string CourseNumberRaw { get; private set; } = null!;
+    [JsonProperty("sequenceNumber")] public string SequenceNumber { get; private set; } = null!;
     public string CourseNumber
     {
         get => $"{Subject}-{CourseNumberRaw}-{SequenceNumber}";
@@ -33,9 +34,9 @@ public record Class : IDBClass
             if (split.Length >= 3) SequenceNumber = split[2];
         }
     }
-    [JsonProperty("campusDescription")] public string CampusDescription { get; private set; }
-    [JsonProperty("scheduleTypeDescription")] public string ScheduleTypeDescription { get; private set; }
-    [JsonProperty("courseTitle")] public string CourseTitleRaw { get; private set; }
+    [JsonProperty("campusDescription")] public string CampusDescription { get; private set; } = null!;
+    [JsonProperty("scheduleTypeDescription")] public string? ScheduleTypeDescription { get; private set; }
+    [JsonProperty("courseTitle")] public string CourseTitleRaw { get; private set; } = null!;
     public string CourseTitle
     {
         get
@@ -52,8 +53,8 @@ public record Class : IDBClass
     [JsonProperty("waitCapacity")] public short WaitCapacity { get; private set; }
     [JsonProperty("waitCount")] public short WaitCount { get; private set; }
     [JsonProperty("waitAvailable")] public short WaitAvailable { get; private set; }
-    [JsonProperty("faculty")] public Professor[] Faculty { get; private set; }
-    [JsonProperty("meetingsFaculty")] public Meeting[] MeetingsFaculty { get; private set; }
+    [JsonProperty("faculty")] public Professor[] Faculty { get; private set; } = Array.Empty<Professor>();
+    [JsonProperty("meetingsFaculty")] public Meeting[] MeetingsFaculty { get; private set; } = Array.Empty<Meeting>();
 }
 
 public interface IDBClass

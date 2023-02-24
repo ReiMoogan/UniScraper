@@ -7,7 +7,7 @@ public class Review
 {
     internal Review()
     {
-            
+
     }
         
     [JsonProperty("attendance")] public string? Attendance { get; private set; }
@@ -23,5 +23,5 @@ public class Review
     [JsonProperty("rTextBookUser")] public string? TextbookUse { get; private set; }
     [JsonProperty("rWouldTakeAgain")] public string? WouldTakeAgain { get; private set; }
     [JsonProperty("takenForCredit")] public string? TakenForCredit { get; private set; }
-    [JsonProperty("teacherRatingTags")] public string?[] TeacherRatingTags { get; private set; }
+    [JsonProperty("teacherRatingTags")] public string?[] TeacherRatingTags { get; private set; } = Array.Empty<string?>();
 }

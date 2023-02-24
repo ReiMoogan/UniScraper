@@ -4,9 +4,11 @@ namespace FetchUCM.Models;
 
 public record Term
 {
-    internal Term()
+    [JsonConstructor]
+    internal Term(string codeRaw, string description)
     {
-            
+        CodeRaw = codeRaw;
+        Description = description;
     }
         
     [JsonProperty("code")] public string CodeRaw { get; private set; }

@@ -21,6 +21,12 @@ public partial class Courses
     public async Task<IActionResult> Post([FromBody] CourseMatchQuery query)
     {
         // Unlike Bobcat Courses, we store terms as an integer.
+        if (query.Term == null || query.CourseList == null)
+        {
+            Response.StatusCode = 400;
+            return BadRequest(Error.GetError(102));
+        }
+
         if (!int.TryParse(query.Term, out _))
         {
             Response.StatusCode = 400;

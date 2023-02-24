@@ -2,7 +2,6 @@
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using ScrapperCore.Utilities;
 
 namespace StandaloneTester;
 
@@ -12,7 +11,7 @@ internal static class Program
     {
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        var config = ScrapperConfig.Load().Verify();
+        var config = Config.Load().Verify();
         await using var connection = new SqlConnection(config.SqlConnection);
         Console.WriteLine("Opening database connection...");
         await connection.OpenAsync();

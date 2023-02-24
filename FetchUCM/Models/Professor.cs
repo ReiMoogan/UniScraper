@@ -9,14 +9,14 @@ public record Professor : IDBProfessor
 {
     internal Professor()
     {
-            
+
     }
-        
-    [JsonProperty("bannerId")] public string BannerIdRaw { get; private set; }
+
+    [JsonProperty("bannerId")] public string BannerIdRaw { get; private set; } = null!;
     public int BannerId => int.Parse(BannerIdRaw);
     public int Id => BannerId; // Renaming for DB
-    [JsonProperty("displayName")] public string DisplayName { get; private set; }
-    [JsonProperty("emailAddress")] public string EmailRaw { get; private set; }
+    [JsonProperty("displayName")] public string DisplayName { get; private set; } = null!;
+    [JsonProperty("emailAddress")] public string? EmailRaw { get; private set; }
 
     public string Email
     {
