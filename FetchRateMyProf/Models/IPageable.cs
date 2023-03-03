@@ -1,9 +1,10 @@
-using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace FetchRateMyProf.Models;
 
 internal interface IPageable<out T>
 {
-    [JsonProperty("remaining")] public int Remaining { get; }
-    public T[] Items { get; }
+    public bool HasNextPage { get; }
+    public string? EndCursor { get; }
+    public IEnumerable<T> Items { get; }
 }

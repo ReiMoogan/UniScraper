@@ -3,25 +3,27 @@ using Newtonsoft.Json;
 
 namespace FetchRateMyProf.Models;
 
-public class Review
-{
-    internal Review()
-    {
-
-    }
-        
-    [JsonProperty("attendance")] public string? Attendance { get; private set; }
-    [JsonProperty("rEasy")] public float Easy { get; private set; }
-    [JsonProperty("rClarity")] public float Clarity { get; private set; }
-    [JsonProperty("rHelpful")] public float Helpful { get; private set; }
-    [JsonProperty("rOverall")] public float Overall { get; private set; }
-    [JsonProperty("rComments")] public string? Comments { get; private set; }
-    [JsonProperty("teacherGrade")] public string? GradeReceived { get; private set; }
-    [JsonProperty("sId")] public int SchoolId { get; private set; }
-    [JsonProperty("rTimestamp")] public long Timestamp { get; private set; }
-    [JsonIgnore] public DateTimeOffset TimeCreated => DateTimeOffset.FromUnixTimeMilliseconds(Timestamp);
-    [JsonProperty("rTextBookUser")] public string? TextbookUse { get; private set; }
-    [JsonProperty("rWouldTakeAgain")] public string? WouldTakeAgain { get; private set; }
-    [JsonProperty("takenForCredit")] public string? TakenForCredit { get; private set; }
-    [JsonProperty("teacherRatingTags")] public string?[] TeacherRatingTags { get; private set; } = Array.Empty<string?>();
-}
+public record Review (
+    [JsonProperty("adminReviewedAt"), JsonConverter(typeof(RMPDateTimeOffsetConverter))] DateTimeOffset? AdminReviewedAt,
+    [JsonProperty("attendanceMandatory")] string AttendanceMandatory,
+    [JsonProperty("clarityRating")] int ClarityRating,
+    [JsonProperty("class")] string Class,
+    [JsonProperty("comment")] string Comment,
+    [JsonProperty("createdByUser")] bool CreatedByUser,
+    [JsonProperty("date"), JsonConverter(typeof(RMPDateTimeOffsetConverter))] DateTimeOffset? Date,
+    [JsonProperty("difficultyRating")] int DifficultyRating,
+    [JsonProperty("flagStatus")] string FlagStatus,
+    [JsonProperty("grade")] string Grade,
+    [JsonProperty("helpfulRating")] int HelpfulRating,
+    [JsonProperty("id")] string ID,
+    [JsonProperty("isForCredit")] bool IsForCredit,
+    [JsonProperty("isForOnlineClass")] bool IsForOnlineClass,
+    [JsonProperty("legacyId")] int LegacyId,
+    [JsonProperty("ratingTags")] string RatingTags,
+    [JsonProperty("teacherNote")] object TeacherNote,
+    [JsonProperty("textbookUse")] int TextbookUse,
+    [JsonProperty("thumbs")] object[] Thumbs,
+    [JsonProperty("thumbsDownTotal")] int ThumbsDownTotal,
+    [JsonProperty("thumbsUpTotal")] int ThumbsUpTotal,
+    [JsonProperty("wouldTakeAgain")] object WouldTakeAgain
+);

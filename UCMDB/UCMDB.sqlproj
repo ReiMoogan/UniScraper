@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>UCMDB</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{13546166-673b-42a7-87c9-3ae1cf0246aa}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>UCMDB</RootNamespace>
+    <AssemblyName>UCMDB</AssemblyName>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="UCM\" />
+    <Folder Include="UCM\Tables\" />
+    <Folder Include="Storage\" />
+    <Folder Include="Security\" />
+    <Folder Include="UCM\Functions\" />
+    <Folder Include="UCM\Stored Procedures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="UCM\Tables\description.sql" />
+    <Build Include="UCM\Tables\professor.sql" />
+    <Build Include="UCM\Tables\v1api.sql" />
+    <Build Include="UCM\Tables\meeting.sql" />
+    <Build Include="UCM\Tables\faculty.sql" />
+    <Build Include="UCM\Tables\reminder.sql" />
+    <Build Include="UCM\Tables\stats.sql" />
+    <Build Include="UCM\Tables\meeting_type.sql" />
+    <Build Include="UCM\Tables\linked_section.sql" />
+    <Build Include="UCM\Tables\subject.sql" />
+    <Build Include="UCM\Tables\class.sql" />
+    <Build Include="Storage\ClassCatalogue.sql" />
+    <Build Include="FullTextIndexes.sql" />
+    <Build Include="Security\UniScraper.sql" />
+    <Build Include="Security\cow.sql" />
+    <Build Include="Security\RoleMemberships.sql" />
+    <Build Include="UCM\Functions\SimpleName.sql" />
+    <Build Include="UCM\Functions\FormatDays.sql" />
+    <Build Include="UCM\Functions\FormatDates.sql" />
+    <Build Include="UCM\Functions\FormatDate.sql" />
+    <Build Include="UCM\Functions\FormatTimes.sql" />
+    <Build Include="UCM\Functions\FormatTime.sql" />
+    <Build Include="UCM\Stored Procedures\TriggerReminders.sql" />
+    <Build Include="UCM\Stored Procedures\MergeDescription.sql" />
+    <Build Include="UCM\Stored Procedures\MergeLinkedCourses.sql" />
+    <Build Include="UCM\Stored Procedures\MergeRMP.sql" />
+    <Build Include="UCM\Stored Procedures\MergeUpload.sql" />
+    <Build Include="UCM\Stored Procedures\UpdateAPI.sql" />
+    <Build Include="UCM\Stored Procedures\GetCourses.sql" />
+    <Build Include="UCM\Stored Procedures\PostMergeDescription.sql" />
+    <Build Include="Security\UCM.sql" />
+  </ItemGroup>
+</Project>

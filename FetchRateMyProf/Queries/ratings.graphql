@@ -1,0 +1,106 @@
+﻿query TeacherRatingsPageQuery(
+    $id: ID!
+    $first: Int!
+    $after: String
+) {
+    node(id: $id) {
+        ... on Teacher {
+            ratings(first: $first, after: $after) {
+                edges {
+                    cursor
+                    node {
+                        ...Rating_rating
+                        id
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    }
+}
+
+fragment Rating_rating on Rating {
+    comment
+    flagStatus
+    createdByUser
+    teacherNote {
+        id
+    }
+    ...RatingHeader_rating
+    ...RatingSuperHeader_rating
+    ...RatingValues_rating
+    ...CourseMeta_rating
+    ...RatingTags_rating
+    ...RatingFooter_rating
+}
+
+fragment RatingHeader_rating on Rating {
+    date
+    class
+    helpfulRating
+    clarityRating
+    isForOnlineClass
+}
+
+fragment RatingSuperHeader_rating on Rating {
+    legacyId
+}
+
+fragment RatingValues_rating on Rating {
+    helpfulRating
+    clarityRating
+    difficultyRating
+}
+
+fragment CourseMeta_rating on Rating {
+    attendanceMandatory
+    wouldTakeAgain
+    grade
+    textbookUse
+    isForOnlineClass
+    isForCredit
+}
+
+fragment RatingTags_rating on Rating {
+    ratingTags
+}
+
+fragment RatingFooter_rating on Rating {
+    id
+    comment
+    class
+    adminReviewedAt
+    flagStatus
+    legacyId
+    thumbsUpTotal
+    thumbsDownTotal
+    thumbs {
+        userId
+        thumbsUp
+        thumbsDown
+        id
+    }
+    teacherNote {
+        ...ProfessorNote_note
+        id
+    }
+}
+
+fragment ProfessorNote_note on TeacherNotes {
+    comment
+    ...ProfessorNoteHeader_note
+    ...ProfessorNoteFooter_note
+}
+
+fragment ProfessorNoteHeader_note on TeacherNotes {
+    createdAt
+    updatedAt
+}
+
+fragment ProfessorNoteFooter_note on TeacherNotes {
+    legacyId
+    flagStatus
+}

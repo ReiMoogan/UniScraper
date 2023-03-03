@@ -1,0 +1,37 @@
+﻿query TeacherSearchResultsPageQuery(
+    $query: TeacherSearchQuery!
+    $first: Int
+    $after: String
+) {
+    search: newSearch {
+        ...TeacherSearchPagination
+    }
+}
+
+fragment TeacherSearchPagination on newSearch {
+    teachers(query: $query, first: $first, after: $after) {
+        edges {
+            cursor
+            node {
+                ...TeacherInfo
+            }
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+        resultCount
+    }
+}
+
+fragment TeacherInfo on Teacher {
+    id
+    legacyId
+    avgRating
+    numRatings
+    wouldTakeAgainPercent
+    avgDifficulty
+    department
+    firstName
+    lastName
+}

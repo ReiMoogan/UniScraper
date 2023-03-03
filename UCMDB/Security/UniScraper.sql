@@ -1,0 +1,6 @@
+﻿CREATE LOGIN [UniScraper] WITH PASSWORD = 'NOT_IN_PROD_LOL';
+GO
+
+CREATE USER [UniScraper] FOR LOGIN [UniScraper]
+    WITH DEFAULT_SCHEMA = [UCM];
+

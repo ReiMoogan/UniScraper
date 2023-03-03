@@ -13,7 +13,7 @@ public static class UpdateRMP
 {
     public static async Task UpdateProfessors(SqlConnection connection)
     {
-        const int ucmsid = 4767;
+        const string ucmsid = "U2Nob29sLTQ3Njc=";
         var uni = RateMyProfessor.GetSchool(ucmsid);
 
         var professors = await uni.GetAllProfessors().ToListAsync();
@@ -25,7 +25,7 @@ public static class UpdateRMP
         }).ToList();
         var professorTable = new DataTable();
         
-        await using (var reader = ObjectReader.Create(noDuplicates, "Id", "FirstName", "LastName", "MiddleName", "Department", "NumRatings", "OverallRating")) {
+        await using (var reader = ObjectReader.Create(noDuplicates, "Id", "FirstName", "LastName", "Department", "NumRatings", "AverageRatings", "AverageDifficulty", "WouldTakeAgainPercent")) {
             professorTable.Load(reader);
         }
 
@@ -36,10 +36,11 @@ public static class UpdateRMP
             copier.ColumnMappings.Add("Id", "rmp_id");
             copier.ColumnMappings.Add("FirstName", "first_name");
             copier.ColumnMappings.Add("LastName", "last_name");
-            copier.ColumnMappings.Add("MiddleName", "middle_name");
             copier.ColumnMappings.Add("Department", "department");
             copier.ColumnMappings.Add("NumRatings", "num_ratings");
-            copier.ColumnMappings.Add("OverallRating", "rating");
+            copier.ColumnMappings.Add("AverageRatings", "rating");
+            copier.ColumnMappings.Add("AverageDifficulty", "difficulty");
+            copier.ColumnMappings.Add("WouldTakeAgainPercent", "would_take_again_percent");
             await copier.WriteToServerAsync(professorTable);
         }
 
@@ -56,13 +57,14 @@ public static class UpdateRMP
         await connection.ExecuteAsync(
             @"CREATE TABLE #professor_rmp
                 (
-                    rmp_id int not null constraint rmp_id_pk primary key nonclustered,
+                    rmp_id varchar(32) not null constraint rmp_id_pk primary key nonclustered,
                     last_name nvarchar(64) NOT NULL,
                     first_name nvarchar(64) NOT NULL,
-                    middle_name nvarchar(64),
                     department varchar(64),
                     num_ratings int constraint DF_num DEFAULT 0 NOT NULL,
-                    rating real constraint DF_rate DEFAULT 0.0 NOT NULL
+                    rating real constraint DF_rate DEFAULT 0.0 NOT NULL,
+                    difficulty real constraint DF_diff DEFAULT 0.0 NOT NULL,
+                    would_take_again_percent real constraint DF_tap DEFAULT 0.0 NOT NULL
                 );
 
                 CREATE UNIQUE INDEX pp_id ON #professor_rmp (rmp_id);

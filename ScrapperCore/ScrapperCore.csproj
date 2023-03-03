@@ -24,7 +24,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\FetchRateMyProf\FetchRateMyProf.csproj" />
-      <ProjectReference Include="..\FetchUCM\FetchUCM.csproj" />
     </ItemGroup>
 
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">

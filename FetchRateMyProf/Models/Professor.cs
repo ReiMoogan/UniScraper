@@ -5,37 +5,29 @@ namespace FetchRateMyProf.Models;
 public class Professor
 {
     [JsonConstructor]
-    internal Professor(string department, string firstName, string middleName, string lastName, int id, int numRatings, string classRating, string overallRating)
+    internal Professor(string department, string firstName, string lastName, string id, int numRatings, float averageRatings, float averageDifficulty, float wouldTakeAgainPercent)
     {
         Department = department;
         FirstName = firstName;
-        MiddleName = middleName;
         LastName = lastName;
         Id = id;
         NumRatings = numRatings;
-        ClassRating = classRating;
-        OverallRatingRaw = overallRating;
+        AverageRatings = averageRatings;
+        AverageDifficulty = averageDifficulty;
+        WouldTakeAgainPercent = wouldTakeAgainPercent;
     }
 
-    [JsonProperty("tDept")] public string Department { get; private set; }
-    [JsonProperty("tFname")] public string FirstName { get; private set; }
-    [JsonProperty("tMiddlename")] public string MiddleName { get; private set; }
-    [JsonProperty("tLname")] public string LastName { get; private set; }
-    [JsonProperty("tid")] public int Id { get; private set; }
-    [JsonProperty("tNumRatings")] public int NumRatings { get; private set; }
-    [JsonProperty("rating_class")] public string ClassRating { get; private set; }
-    [JsonProperty("overall_rating")] public string OverallRatingRaw { get; private set; }
-    public float OverallRating
-    {
-        get
-        {
-            var ratingSuccess = float.TryParse(OverallRatingRaw, out var rating);
-            return ratingSuccess ? rating : 0.0f;
-        }
-    }
-
+    [JsonProperty("department")] public string Department { get; private set; }
+    [JsonProperty("firstName")] public string FirstName { get; private set; }
+    [JsonProperty("lastName")] public string LastName { get; private set; }
+    [JsonProperty("id")] public string Id { get; private set; }
+    [JsonProperty("numRatings")] public int NumRatings { get; private set; }
+    [JsonProperty("avgRating")] public float AverageRatings { get; private set; }
+    [JsonProperty("avgDifficulty")] public float AverageDifficulty { get; private set; }
+    [JsonProperty("wouldTakeAgainPercent")] public float WouldTakeAgainPercent { get; private set; }
+    
     public override string ToString()
     {
-        return $"{FirstName} {MiddleName} {LastName}";
+        return $"{FirstName} {LastName}";
     }
 }

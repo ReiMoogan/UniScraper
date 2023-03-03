@@ -10,18 +10,16 @@ Honestly, I developed this repo because I wanted play with databases.
 
 ## What's included
 
-### `master` branch
 This contains the API (and hopefully a UI eventually) written in ASP.NET Core. It fetches data from SQL Server and will sort out data in JSON.
-See the controllers for routing info, or the Swagger docs when running.
+See the controllers for routing info, or the Swagger docs when running. It also fetches data from RateMyProfessor, which is isolated in its own class library.
 
 V1 of the API is an attempt to be backwards-compatible with BobcatCourses. If I ever get to a V2, it will implement JSON properly instead of
 [whatever this is](https://cdn.discordapp.com/attachments/601998175301140480/981057295679127552/unknown.png).
 Due to the different data sources, the API is a from-scratch rewrite, so data differences will likely occur.
 
-### `db` branch
-This branch contains a Visual Studio Database Project, which contains the table structures and Stored Procedures/Functions used.
+There also contains a Visual Studio Database Project, which contains the table structures and Stored Procedures/Functions used.
 This can be used to set up a database if the project is to be replicated. Note that this is designed in SQL Server (with full-text search).
-Porting to MySQL or Postgres is not my top priority.
+Porting to MySQL, MongoDB, or any other DB system is not my top priority.
 
 ## Thanks to...
 - [HelloAndrew](https://github.com/classAndrew), who figured out how to set up cookies automatically for [Moogan](https://github.com/classAndrew/cow).

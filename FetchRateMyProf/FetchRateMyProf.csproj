@@ -10,4 +10,15 @@
       <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Queries\professors.graphql" />
+      <EmbeddedResource Include="Queries\professors.graphql">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <None Remove="Queries\ratings.graphql" />
+      <EmbeddedResource Include="Queries\ratings.graphql">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>
