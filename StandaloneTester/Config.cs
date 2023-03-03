@@ -1,7 +1,7 @@
 ﻿namespace StandaloneTester;
 
 using System;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -24,7 +24,8 @@ public class Config
                 UserID = "UniScraper",
                 Password = SqlPassword,
                 InitialCatalog = "UniScraper",
-                MultipleActiveResultSets = true
+                MultipleActiveResultSets = true,
+                TrustServerCertificate = true
             };
             return output.ConnectionString;
         }

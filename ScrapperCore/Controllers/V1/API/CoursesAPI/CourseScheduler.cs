@@ -4,7 +4,9 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using ScrapperCore.Models.V1;
+using SortOrder = ScrapperCore.Models.V1.SortOrder;
 
 // This entire class is a W.I.P., and probably will not be finished.
 // ReSharper disable NotAccessedField.Local
@@ -19,7 +21,7 @@ namespace ScrapperCore.Controllers.V1.API.CoursesAPI;
 // I'd implement this using a stored procedure instead.
 public class CourseScheduler
 {
-    private IDbConnection _connection;
+    private SqlConnection _connection;
     private int _term;
     private string? _earliestTime;
     private string? _latestTime;
@@ -28,7 +30,7 @@ public class CourseScheduler
     private SortOrder _days;
     private bool _searchFull;
 
-    public CourseScheduler(IDbConnection connection, int term, string? earliestTime, string? latestTime, IEnumerable<string> badCRNs, SortOrder gaps = SortOrder.Ascending,
+    public CourseScheduler(SqlConnection connection, int term, string? earliestTime, string? latestTime, IEnumerable<string> badCRNs, SortOrder gaps = SortOrder.Ascending,
         SortOrder days = SortOrder.Ascending, bool searchFull = false)
     {
         _connection = connection;

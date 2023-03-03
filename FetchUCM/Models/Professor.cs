@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
@@ -37,7 +39,10 @@ public record Professor : IDBProfessor
         get {
             var nameSplit = DisplayName.Split(',');
             var firstName = nameSplit[^1].Trim();
-            return firstName;
+            
+            var writer = new StringWriter();
+            WebUtility.HtmlDecode(firstName, writer);
+            return writer.ToString();
         }
     }
         
@@ -45,7 +50,10 @@ public record Professor : IDBProfessor
         get {
             var nameSplit = DisplayName.Split(',');
             var lastName = nameSplit[0].Trim();
-            return lastName;
+            
+            var writer = new StringWriter();
+            WebUtility.HtmlDecode(lastName, writer);
+            return writer.ToString();
         }
     }
         

@@ -1,6 +1,6 @@
 using System;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -75,14 +75,14 @@ public static class UpdateUCMDescriptions
         Console.WriteLine($"Updated {descriptionTable.Rows.Count} descriptions!");
     }
 
-    private static async Task<bool> TimeToRun(IDbConnection connection)
+    private static async Task<bool> TimeToRun(SqlConnection connection)
     {
         var time = await connection.QueryFirstOrDefaultAsync<int>(
             "SELECT DATEDIFF(SECOND, last_update, SYSDATETIME()) FROM [UCM].[stats] WHERE table_name = 'description';");
         return time > 24 * 60 * 60; // Wait every day.
     }
     
-    private static async Task CreateTemporaryTable(IDbConnection connection)
+    private static async Task CreateTemporaryTable(SqlConnection connection)
     {
         // Drop if a previous session crashed mid-way.
         await DropTemporaryTable(connection);
@@ -90,7 +90,7 @@ public static class UpdateUCMDescriptions
             @"SELECT TOP 0 * INTO #description FROM [UniScraper].[UCM].[description];");
     }
     
-    private static async Task PostCreateTemporaryTable(IDbConnection connection)
+    private static async Task PostCreateTemporaryTable(SqlConnection connection)
     {
         await DropTemporaryTable(connection);
         await connection.ExecuteAsync(
@@ -101,7 +101,7 @@ public static class UpdateUCMDescriptions
                 );");
     }
     
-    private static async Task DropTemporaryTable(IDbConnection connection)
+    private static async Task DropTemporaryTable(SqlConnection connection)
     {
         try
         {
