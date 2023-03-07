@@ -1,4 +1,4 @@
-CREATE TABLE [UCM].[professor] (
+﻿CREATE TABLE [UCM].[professor] (
     [email]                    VARCHAR (256) NOT NULL,
     [rmp_id]                   VARCHAR (32)  NULL,
     [last_name]                NVARCHAR (64) NOT NULL,
@@ -11,6 +11,8 @@ CREATE TABLE [UCM].[professor] (
     [full_name]                AS            (([first_name]+' ')+[last_name]) PERSISTED NOT NULL,
     CONSTRAINT [PK_professor] PRIMARY KEY NONCLUSTERED ([email] ASC)
 );
+
+
 
 
 

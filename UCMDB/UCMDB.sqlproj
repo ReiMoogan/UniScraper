@@ -94,5 +94,6 @@
     <Build Include="UCM\Stored Procedures\GetCourses.sql" />
     <Build Include="UCM\Stored Procedures\PostMergeDescription.sql" />
     <Build Include="Security\UCM.sql" />
+    <Build Include="FullTextIndexes.sql" />
   </ItemGroup>
 </Project>
