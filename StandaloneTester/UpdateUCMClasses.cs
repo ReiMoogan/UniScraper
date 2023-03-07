@@ -32,7 +32,7 @@ public static class UpdateUCMClasses
         {
             // Skip read/view-only tables, no need to update static tables.
             if (term.Description.ToLower().Contains("only")) continue;
-            
+            catalog.ClearCookies();
             Console.WriteLine("Creating temporary databases...");
             await CreateTemporaryTables(connection);
             Console.WriteLine($"Reading from {term.Description}");
@@ -53,13 +53,14 @@ public static class UpdateUCMClasses
         stopwatch.Restart();
 
         var classes = everything.Select(o => (IDBClass)o);
-        var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor)o).GroupBy(o => o.Id)
+        var professors = everything.SelectMany(o => o.Faculty).Select(o => (IDBProfessor)o).GroupBy(o => o.Email)
             .Select(o => o.First());
         var faculty = everything.SelectMany(o =>
             o.Faculty.Select(p => new Faculty { ProfessorEmail = p.Email, ClassId = o.Id }));
         var meetings = everything
-            .SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.CourseReferenceNumber, p.Time)))
+            .SelectMany(o => o.MeetingsFaculty.Select(p => new DBMeetingTime(o.Id, p.Time)))
             .GroupBy(o => new { o.ClassId, o.MeetingType }).Select(o => o.First());
+        
         var classTable = new DataTable();
         var professorTable = new DataTable();
         var facultyTable = new DataTable();
@@ -150,8 +151,8 @@ public static class UpdateUCMClasses
                     foreach (var linked in linkedSections)
                     {
                         var row = linkedTable.NewRow();
-                        row["parent"] = o.CourseReferenceNumber;
-                        row["child"] = linked;
+                        row["parent"] = o.Id;
+                        row["child"] = o.Term * 10000 + linked;
                         linkedTable.Rows.Add(row);
                     }
                 }
@@ -198,13 +199,13 @@ public static class UpdateUCMClasses
                 SELECT TOP 0 * INTO #meeting FROM [UniScraper].[UCM].[meeting];
                 CREATE TABLE #professor
                 (
-                    id int not null constraint id_temp_pk primary key nonclustered,
+                    email varchar(64) NOT NULL CONSTRAINT email_temp_pk PRIMARY KEY CLUSTERED,
                     last_name nvarchar(64) NOT NULL,
                     first_name nvarchar(64) NOT NULL,
-                    email varchar(64) NOT NULL,
                     -- For compatibility with the IDBProfessor object
                     num_ratings int DEFAULT 0 NOT NULL,
-                    rating real DEFAULT 0.0 NOT NULL
+                    rating real DEFAULT 0.0 NOT NULL,
+                    difficulty real DEFAULT 0.0 NOT NULL
                 );
                 SELECT TOP 0 * INTO #linked_section FROM [UniScraper].[UCM].[linked_section];
                 ");

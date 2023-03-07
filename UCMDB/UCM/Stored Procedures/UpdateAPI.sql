@@ -35,7 +35,7 @@ BEGIN
 		FROM #crn
 		INNER JOIN [UCM].[class] ON class.course_reference_number = #crn.crn
 		LEFT JOIN [UCM].[faculty] ON class.id = faculty.class_id
-		LEFT JOIN [UCM].[professor] ON faculty.professor_id = professor.id;
+		LEFT JOIN [UCM].[professor] ON faculty.professor_email = professor.email;
 
 		-- Create a list of professors for each class
 		DROP TABLE IF EXISTS #professor_list;

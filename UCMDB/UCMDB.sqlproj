@@ -76,7 +76,6 @@
     <Build Include="UCM\Tables\subject.sql" />
     <Build Include="UCM\Tables\class.sql" />
     <Build Include="Storage\ClassCatalogue.sql" />
-    <Build Include="FullTextIndexes.sql" />
     <Build Include="Security\UniScraper.sql" />
     <Build Include="Security\cow.sql" />
     <Build Include="Security\RoleMemberships.sql" />

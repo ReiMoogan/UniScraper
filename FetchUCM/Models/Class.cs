@@ -11,10 +11,10 @@ public record Class : IDBClass
     {
             
     }
-        
-    [JsonProperty("id")] public int Id { get; private set; }
+
+    [JsonIgnore] public int Id => Term * 10000 + CourseReferenceNumber;
     [JsonProperty("term")] public string TermRaw { get; private set; } = null!;
-    public int Term => int.Parse(TermRaw);
+    [JsonIgnore] public int Term => int.Parse(TermRaw);
     [JsonProperty("termDesc")] public string? TermDescription { get; private set; }
     [JsonProperty("partOfTerm")] public string? PartOfTerm { get; private set; }
     // Why are they storing it as a string?
@@ -50,16 +50,16 @@ public record Class : IDBClass
     [JsonProperty("maximumEnrollment")] public short MaximumEnrollment { get; private set; }
     [JsonProperty("enrollment")] public short Enrollment { get; private set; }
     [JsonProperty("seatsAvailable")] public short SeatsAvailable { get; private set; }
-    [JsonProperty("waitCapacity")] public short WaitCapacity { get; private set; }
-    [JsonProperty("waitCount")] public short WaitCount { get; private set; }
-    [JsonProperty("waitAvailable")] public short WaitAvailable { get; private set; }
+    [JsonProperty("waitCapacity")] public short? WaitCapacity { get; private set; }
+    [JsonProperty("waitCount")] public short? WaitCount { get; private set; }
+    [JsonProperty("waitAvailable")] public short? WaitAvailable { get; private set; }
     [JsonProperty("faculty")] public Professor[] Faculty { get; private set; } = Array.Empty<Professor>();
     [JsonProperty("meetingsFaculty")] public Meeting[] MeetingsFaculty { get; private set; } = Array.Empty<Meeting>();
 }
 
 public interface IDBClass
 {
-    [JsonProperty("id")] public int Id { get; }
+    public int Id { get; }
     public int Term { get; }
     public int CourseReferenceNumber { get; }
     public string CourseNumber { get; }
@@ -69,6 +69,6 @@ public interface IDBClass
     [JsonProperty("maximumEnrollment")] public short MaximumEnrollment { get; }
     [JsonProperty("enrollment")] public short Enrollment { get; }
     [JsonProperty("seatsAvailable")] public short SeatsAvailable { get; }
-    [JsonProperty("waitCapacity")] public short WaitCapacity { get; }
-    [JsonProperty("waitAvailable")] public short WaitAvailable { get; }
+    [JsonProperty("waitCapacity")] public short? WaitCapacity { get; }
+    [JsonProperty("waitAvailable")] public short? WaitAvailable { get; }
 }

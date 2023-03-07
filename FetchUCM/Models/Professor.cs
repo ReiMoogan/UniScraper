@@ -14,9 +14,6 @@ public record Professor : IDBProfessor
 
     }
 
-    [JsonProperty("bannerId")] public string BannerIdRaw { get; private set; } = null!;
-    public int BannerId => int.Parse(BannerIdRaw);
-    public int Id => BannerId; // Renaming for DB
     [JsonProperty("displayName")] public string DisplayName { get; private set; } = null!;
     [JsonProperty("emailAddress")] public string? EmailRaw { get; private set; }
 
@@ -59,16 +56,18 @@ public record Professor : IDBProfessor
         
     public float Rating => 0;
     public int NumRatings => 0;
+    public float Difficulty => 0;
 }
 
 public interface IDBProfessor
 {
-    public int Id { get; }
+    public string Email { get; }
     public string FirstName { get; }
     public string LastName { get; }
-    public string Email { get; }
     /// For compatibility with our database, unused by Banner.
     public float Rating { get; }
     /// For compatibility with our database, unused by Banner.
     public int NumRatings { get; }
+    /// For compatibility with our database, unused by Banner.
+    public float Difficulty { get; }
 }

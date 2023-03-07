@@ -13,11 +13,20 @@
     [hours_per_week]       REAL         DEFAULT ((0.0)) NOT NULL,
     [in_session]           TINYINT      DEFAULT ((0)) NOT NULL,
     [meeting_type]         TINYINT      DEFAULT ((1)) NOT NULL,
-    CONSTRAINT [meeting_class_id_fk] FOREIGN KEY ([class_id]) REFERENCES [UCM].[class] ([id]) ON DELETE CASCADE
+    CONSTRAINT [FK_meeting_class] FOREIGN KEY ([class_id]) REFERENCES [UCM].[class] ([id])
 );
+
+
+
+
 
 
 GO
 CREATE NONCLUSTERED INDEX [meeting_class_id_index]
     ON [UCM].[meeting]([class_id] ASC);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_class]
+    ON [UCM].[meeting]([class_id] ASC, [meeting_type] ASC);
 

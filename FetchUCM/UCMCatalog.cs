@@ -10,17 +10,18 @@ namespace FetchUCM;
 public partial class UCMCatalog
 {
     private static readonly HttpClient Client;
+    private static readonly CookieContainer Cookies;
     private readonly HttpClient _client;
     private bool _cookieSet;
 
     static UCMCatalog()
     {
-        var cookies = new CookieContainer();
+        Cookies = new CookieContainer();
         var handler = new HttpClientHandler
         {
             AllowAutoRedirect = true,
             UseCookies = true,
-            CookieContainer = cookies,
+            CookieContainer = Cookies,
             Proxy = null,
             UseProxy = false
         };
@@ -31,6 +32,18 @@ public partial class UCMCatalog
     public UCMCatalog(HttpClient? client = null)
     {
         _client = client ?? Client;
+    }
+
+    public void ClearCookies()
+    {
+        foreach (Cookie cookie in Cookies.GetAllCookies())
+        {
+            // I just liked the number 23 lol.
+            cookie.Expires = DateTime.Now.Subtract(TimeSpan.FromDays(23));
+            cookie.Expired = true;
+        }
+
+        _cookieSet = false;
     }
 
     private async Task GetCookie(int term)
