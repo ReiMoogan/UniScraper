@@ -32,10 +32,6 @@
       <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.5.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\FetchRateMyProf\FetchRateMyProf.csproj" />
-    </ItemGroup>
-
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
         <Copy SourceFiles="..\config.json" DestinationFolder="$(OutDir)" />
     </Target>
