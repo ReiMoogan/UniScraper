@@ -25,7 +25,8 @@ public class Config
                 Password = SqlPassword,
                 InitialCatalog = "UniScraper",
                 MultipleActiveResultSets = true,
-                TrustServerCertificate = true
+                TrustServerCertificate = true,
+                Encrypt = SqlConnectionEncryptOption.Optional
             };
             return output.ConnectionString;
         }

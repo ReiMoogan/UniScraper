@@ -1,4 +1,4 @@
-﻿CREATE TABLE [UCM].[class] (
+CREATE TABLE [UCM].[class] (
     [id]                      AS            ([term]*(10000)+[course_reference_number]) PERSISTED NOT NULL,
     [term]                    INT           NOT NULL,
     [course_reference_number] INT           NOT NULL,
@@ -21,12 +21,6 @@
 
 
 
-GO
-
-
-
-GO
-
 
 
 GO
@@ -51,4 +45,13 @@ GO
 
 GO
 
+
+
+GO
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_crn_term]
+    ON [UCM].[class]([term] ASC, [course_reference_number] ASC);
 

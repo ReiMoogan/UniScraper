@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
+using ScrapperCore.Controllers.V2;
+using ScrapperCore.Models.V2;
+using ScrapperCore.Models.V2.GraphQL;
+using ScrapperCore.Models.V2.SQL;
 using ScrapperCore.Utilities;
 
 namespace ScrapperCore;
@@ -33,7 +38,20 @@ public class Startup
         });
         services.AddSwaggerGenNewtonsoftSupport();
         services.AddHttpClient();
-        services.AddSingleton(ScrapperConfig.Load());
+
+        var config = ScrapperConfig.Load();
+        services.AddSingleton(config);
+        
+        // For GraphQL
+        services.AddDbContextFactory<UniScraperContext>(options => options.UseSqlServer(config.SqlConnection));
+        services.AddScoped<IClassRepository, ClassRepository>();
+        services
+            .AddGraphQLServer()
+            .AddType<ClassType>()
+            .AddQueryType<Query>()
+            .AddSubscriptionType<Subscription>()
+            .AddInMemorySubscriptions();
+        
         // Honestly don't know a better place to put this
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
     }
@@ -56,18 +74,21 @@ public class Startup
         {
             endpoints.MapControllers();
             endpoints.MapSwagger();
+            endpoints.MapGraphQL("/v2/graphql");
         });
 
         app.UseSwagger(c =>
         {
-            c.RouteTemplate = "api/{documentName}/swagger.json";
+            c.RouteTemplate = "v1/api/{documentName}/swagger.json";
         });
         
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("v1/swagger.json", "UCMScraper API v1");
-            c.RoutePrefix = "api";
+            c.RoutePrefix = "v1/api";
             c.DocumentTitle = "UniScraper API Docs";
         });
+
+        app.UseWebSockets();
     }
 }

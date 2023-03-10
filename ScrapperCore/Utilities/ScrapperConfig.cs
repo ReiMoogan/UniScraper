@@ -24,7 +24,9 @@ public class ScrapperConfig
                 UserID = "UniScraper",
                 Password = SqlPassword,
                 InitialCatalog = "UniScraper",
-                MultipleActiveResultSets = true
+                MultipleActiveResultSets = true,
+                TrustServerCertificate = false,
+                Encrypt = SqlConnectionEncryptOption.Optional
             };
             return output.ConnectionString;
         }

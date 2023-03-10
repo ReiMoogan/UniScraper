@@ -6,7 +6,11 @@ BEGIN
 	SET XACT_ABORT ON;
 
 	BEGIN TRAN
-		SELECT course_reference_number AS crn INTO #crn FROM [UCM].[class];
+		DECLARE @recent_term INT;
+		SELECT DISTINCT TOP 1 @recent_term = term FROM [UniScraper].[UCM].[class] ORDER BY term DESC;
+		SELECT @recent_term;
+
+		SELECT course_reference_number AS crn INTO #crn FROM [UCM].[class] WHERE term = @recent_term;
 
 		-- Fetch all relevant linked sections
 		DROP TABLE IF EXISTS #linked_section;
@@ -33,7 +37,7 @@ BEGIN
 			last_name + ' ' + first_name AS full_name
 		INTO #professor
 		FROM #crn
-		INNER JOIN [UCM].[class] ON class.course_reference_number = #crn.crn
+		INNER JOIN [UCM].[class] ON class.course_reference_number = #crn.crn AND term = @recent_term
 		LEFT JOIN [UCM].[faculty] ON class.id = faculty.class_id
 		LEFT JOIN [UCM].[professor] ON faculty.professor_email = professor.email;
 
@@ -57,7 +61,7 @@ BEGIN
 			([UCM].[FormatDates](meeting.begin_date, meeting.end_date)) AS dates
 		INTO #meeting
 		FROM #crn
-		INNER JOIN [UCM].[class] ON class.course_reference_number = #crn.crn
+		INNER JOIN [UCM].[class] ON class.course_reference_number = #crn.crn AND term = @recent_term
 		LEFT JOIN [UCM].[meeting] ON class.id = meeting.class_id
 		LEFT JOIN [UCM].[meeting_type] ON meeting_type.id = meeting.meeting_type;
 
