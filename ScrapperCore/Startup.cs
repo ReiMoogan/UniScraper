@@ -1,3 +1,4 @@
+using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using ScrapperCore.Controllers.V2;
-using ScrapperCore.Models.V2;
 using ScrapperCore.Models.V2.GraphQL;
 using ScrapperCore.Models.V2.SQL;
 using ScrapperCore.Utilities;
@@ -47,6 +47,12 @@ public class Startup
         services.AddScoped<IClassRepository, ClassRepository>();
         services
             .AddGraphQLServer()
+            .SetPagingOptions(new PagingOptions
+                {
+                    MaxPageSize = 500,
+                    DefaultPageSize = 100,
+                    IncludeTotalCount = true
+                })
             .AddType<ClassType>()
             .AddQueryType<Query>()
             .AddSubscriptionType<Subscription>()

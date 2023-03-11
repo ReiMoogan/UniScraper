@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
 namespace ScrapperCore.Models.V2.SQL;
 
 public interface IClassRepository
 {
-    public List<Class> GetClasses();
+    public IQueryable<Class> GetClasses(int term);
     public Class? GetClass(int term, int crn);
+    public IQueryable<Class> GetClassesByClassNumber(string major, int number, int? term = null);
+    public IQueryable<Class> GetClassesByCourseName(string phrase, int term);
 }
 
 public class ClassRepository : IClassRepository
@@ -22,15 +23,29 @@ public class ClassRepository : IClassRepository
         // ctx.Database.EnsureCreated();
     }
     
-    public List<Class> GetClasses()
+    public IQueryable<Class> GetClasses(int term)
     {
         using var ctx = _db.CreateDbContext();
-        return ctx.Classes.ToList();
+        return ctx.Classes.Where(o => o.Term == term);
     }
 
     public Class? GetClass(int term, int crn)
     {
         using var ctx = _db.CreateDbContext();
         return ctx.Classes.SingleOrDefault(o => o.Term == term && o.CourseReferenceNumber == crn);
+    }
+    
+    public IQueryable<Class> GetClassesByClassNumber(string major, int number, int? term = null)
+    {
+        using var ctx = _db.CreateDbContext();
+        var mukyu = $"{major}-{number}";
+        return ctx.Classes.Where(o => o.CourseNumber.StartsWith(mukyu));
+    }
+    
+    public IQueryable<Class> GetClassesByCourseName(string phrase, int term)
+    {
+        using var ctx = _db.CreateDbContext();
+        return ctx.Classes.Where(o =>
+            o.Term == term && o.CourseTitle != null && EF.Functions.Contains(o.CourseTitle, phrase));
     }
 }

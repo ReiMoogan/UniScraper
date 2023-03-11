@@ -10,6 +10,8 @@ public static class V1Utilities
         var semester = now.Month switch
         {
             <= 4 and >= 1 => 10, // Jan to Apr: Fall
+            // ReSharper disable once PatternIsRedundant
+            // I like my readability
             <= 7 and >= 5 => 20, // May to Jul: Summer
             _ => 30 // Aug to Dec: Winter
         };
