@@ -98,45 +98,47 @@ public class UniScraperContext : DbContext
 
         modelBuilder.Entity<Faculty>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("faculty", "UCM");
+            entity.ToTable("faculty", "UCM");
 
             entity.HasIndex(e => new { e.ClassId, e.ProfessorEmail }, "class_professor_unique")
                 .IsUnique()
                 .IsClustered();
 
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ClassId).HasColumnName("class_id");
             entity.Property(e => e.ProfessorEmail)
                 .HasMaxLength(256)
                 .IsUnicode(false)
                 .HasColumnName("professor_email");
 
-            entity.HasOne(d => d.Class).WithMany()
+            /*
+            entity.HasOne(d => d.Class).WithMany(o => o.Faculty)
                 .HasForeignKey(d => d.ClassId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_faculty_class");
+                .HasConstraintName("FK_faculty_class");*/
 
-            entity.HasOne(d => d.ProfessorEmailNavigation).WithMany()
+            entity.HasOne(d => d.Professor).WithMany(o => o.Classes)
                 .HasForeignKey(d => d.ProfessorEmail)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_faculty_professor");
+
+            entity.Navigation(o => o.Professor).AutoInclude();
         });
 
         modelBuilder.Entity<LinkedSection>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("linked_section", "UCM");
+            entity.ToTable("linked_section", "UCM");
 
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Child).HasColumnName("child");
             entity.Property(e => e.Parent).HasColumnName("parent");
 
-            entity.HasOne(d => d.ChildNavigation).WithMany()
+            entity.HasOne(d => d.ChildNavigation).WithMany(o => o.LinkedSections)
                 .HasForeignKey(d => d.Child)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_linked_section_class1");
 
+            // Don't implement o => o.LinkedSections for backwards navigation, EF doesn't like that
             entity.HasOne(d => d.ParentNavigation).WithMany()
                 .HasForeignKey(d => d.Parent)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -145,14 +147,13 @@ public class UniScraperContext : DbContext
 
         modelBuilder.Entity<Meeting>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("meeting", "UCM");
+            entity.ToTable("meeting", "UCM");
 
             entity.HasIndex(e => new { e.ClassId, e.MeetingType }, "IX_class").IsUnique();
 
             entity.HasIndex(e => e.ClassId, "meeting_class_id_index");
 
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.BeginDate)
                 .HasMaxLength(10)
                 .IsUnicode(false)
@@ -201,7 +202,7 @@ public class UniScraperContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("room");
 
-            entity.HasOne(d => d.Class).WithMany()
+            entity.HasOne(d => d.Class).WithMany(o => o.Meetings)
                 .HasForeignKey(d => d.ClassId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_meeting_class");
@@ -228,7 +229,7 @@ public class UniScraperContext : DbContext
 
         modelBuilder.Entity<Professor>(entity =>
         {
-            entity.HasKey(e => e.Email).IsClustered(false);
+            entity.HasKey(e => e.Email).HasName("PK_professor").IsClustered(false);
 
             entity.ToTable("professor", "UCM");
 

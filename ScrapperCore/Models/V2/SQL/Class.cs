@@ -1,4 +1,7 @@
-﻿namespace ScrapperCore.Models.V2.SQL;
+﻿using System.Collections.Generic;
+using HotChocolate.Data;
+
+namespace ScrapperCore.Models.V2.SQL;
 
 public class Class
 {
@@ -25,4 +28,13 @@ public class Class
     public short? WaitCapacity { get; set; }
 
     public short? WaitAvailable { get; set; }
+
+    [UseFiltering]
+    public virtual ICollection<LinkedSection> LinkedSections { get; set; } = null!;
+    
+    [UseFiltering]
+    public virtual ICollection<Meeting> Meetings { get; set; } = null!;
+
+    [UseFiltering] 
+    public virtual ICollection<Faculty> Faculty { get; set; } = null!;
 }

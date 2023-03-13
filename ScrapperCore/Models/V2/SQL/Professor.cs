@@ -1,4 +1,7 @@
-﻿namespace ScrapperCore.Models.V2.SQL;
+﻿using System.Collections.Generic;
+using HotChocolate.Data;
+
+namespace ScrapperCore.Models.V2.SQL;
 
 public class Professor
 {
@@ -21,4 +24,7 @@ public class Professor
     public float WouldTakeAgainPercent { get; set; }
 
     public string FullName { get; set; } = null!;
+    
+    [UseFiltering]
+    public virtual ICollection<Faculty> Classes { get; set; } = new HashSet<Faculty>();
 }

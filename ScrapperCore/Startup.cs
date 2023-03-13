@@ -10,6 +10,7 @@ using ScrapperCore.Controllers.V2;
 using ScrapperCore.Models.V2.GraphQL;
 using ScrapperCore.Models.V2.SQL;
 using ScrapperCore.Utilities;
+using MeetingType = ScrapperCore.Models.V2.GraphQL.MeetingType;
 
 namespace ScrapperCore;
 
@@ -43,8 +44,8 @@ public class Startup
         services.AddSingleton(config);
         
         // For GraphQL
-        services.AddDbContextFactory<UniScraperContext>(options => options.UseSqlServer(config.SqlConnection));
-        services.AddScoped<IClassRepository, ClassRepository>();
+        services.AddDbContextFactory<UniScraperContext>(options => options.UseSqlServer(config.SqlConnection,
+            o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
         services
             .AddGraphQLServer()
             .SetPagingOptions(new PagingOptions
@@ -53,10 +54,19 @@ public class Startup
                     DefaultPageSize = 100,
                     IncludeTotalCount = true
                 })
-            .AddType<ClassType>()
+            .AddType<GraphQLTypes>()
+            .AddType<DescriptionType>()
+            .AddType<FacultyType>()
+            .AddType<LinkedSectionType>()
+            .AddType<MeetingType>()
+            .AddType<ProfessorType>()
+            .AddType<StatType>()
+            .AddType<SubjectType>()
             .AddQueryType<Query>()
             .AddSubscriptionType<Subscription>()
-            .AddInMemorySubscriptions();
+            .AddInMemorySubscriptions()
+            .AddProjections()
+            .AddFiltering();
         
         // Honestly don't know a better place to put this
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
