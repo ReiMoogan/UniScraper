@@ -16,6 +16,7 @@ public partial class Query
     [UsePaging]
     [UseProjection]
     [UseFiltering]
+    [UseSorting]
     [GraphQLDescription("Get classes for a given term.")]
     public async Task<IQueryable<Class>> GetClasses
     (
@@ -62,6 +63,7 @@ public partial class Query
     [UsePaging]
     [UseProjection]
     [UseFiltering]
+    [UseSorting]
     [GraphQLDescription("Get all classes for a course.")]
     public async Task<IQueryable<Class>> GetClassesByCourseNumber
     (
@@ -89,6 +91,7 @@ public partial class Query
     [UsePaging]
     [UseProjection]
     [UseFiltering]
+    [UseSorting]
     [GraphQLDescription("Search for classes by their course name.")]
     public async Task<IQueryable<Class>> GetClassesByCourseName
     (

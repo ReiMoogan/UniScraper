@@ -50,7 +50,7 @@ public class Startup
             .AddGraphQLServer()
             .SetPagingOptions(new PagingOptions
                 {
-                    MaxPageSize = 500,
+                    MaxPageSize = 5000,
                     DefaultPageSize = 100,
                     IncludeTotalCount = true
                 })
@@ -66,7 +66,19 @@ public class Startup
             .AddSubscriptionType<Subscription>()
             .AddInMemorySubscriptions()
             .AddProjections()
-            .AddFiltering();
+            .AddFiltering()
+            .AddSorting();
+        
+        services.AddCors(builder =>
+        {
+            builder.AddPolicy(name: "UniScraperPolicy",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+        });
         
         // Honestly don't know a better place to put this
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
@@ -85,12 +97,12 @@ public class Startup
         }
 
         app.UseRouting();
-
+        app.UseCors();
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
             endpoints.MapSwagger();
-            endpoints.MapGraphQL("/v2/graphql");
+            endpoints.MapGraphQL("/v2/graphql").RequireCors("UniScraperPolicy");
         });
 
         app.UseSwagger(c =>
