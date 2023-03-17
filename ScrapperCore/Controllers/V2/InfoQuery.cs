@@ -5,6 +5,7 @@ using HotChocolate.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using ScrapperCore.Models.V2.GraphQL;
 using ScrapperCore.Models.V2.SQL;
+using MeetingType = ScrapperCore.Models.V2.SQL.MeetingType;
 
 namespace ScrapperCore.Controllers.V2;
 
@@ -71,6 +72,21 @@ public partial class Query
         var stats = ctx.Classes.Select(o => o.Term).Distinct();
         
         await eventSender.SendAsync("Terms", stats);
+        return stats;
+    }
+    
+    [GraphQLDescription("Get all meeting types in the class database.")]
+    public async Task<IQueryable<MeetingType>> GetMeetingTypes
+    (
+        [Service] IDbContextFactory<UniScraperContext> factory,
+        [Service] ITopicEventSender eventSender
+    )
+    {
+        var ctx = await factory.CreateDbContextAsync();
+
+        var stats = ctx.MeetingTypes;
+        
+        await eventSender.SendAsync("MeetingTypes", stats);
         return stats;
     }
 }
