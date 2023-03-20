@@ -12,3 +12,5 @@ Desktop.ini
 .DS_Store
 *.json
 *.jfm
+
+ScrapperCore/StaticViews/main/*

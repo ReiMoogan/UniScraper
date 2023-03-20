@@ -7,16 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="StaticViews\img" />
-      <Folder Include="StaticViews\js" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Dapper" Version="2.0.123" />
       <PackageReference Include="HotChocolate.AspNetCore" Version="13.0.5" />
       <PackageReference Include="HotChocolate.Data" Version="13.0.5" />
       <PackageReference Include="HotChocolate.Data.EntityFramework" Version="13.0.5" />
-      <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.3" />
       <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.3">
@@ -34,8 +28,21 @@
       <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.5.0" />
     </ItemGroup>
 
+    <ItemGroup>
+        <StaticViews Include="StaticViews/**/*.*" />
+        <MainPage Include="../../miko/build/**/*.*" />
+    </ItemGroup>
+
     <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
         <Copy SourceFiles="..\config.json" DestinationFolder="$(OutDir)" />
+        <RemoveDir Directories="$(OutDir)/StaticViews" />
+        <Copy SourceFiles="@(StaticViews)" DestinationFolder="$(OutDir)/StaticViews/%(RecursiveDir)" />
+    </Target>
+
+    <Target Name="BuildPage" BeforeTargets="BeforeBuild">
+        <Exec Command="yarn.cmd build" WorkingDirectory="../../miko" />
+        <RemoveDir Directories="StaticViews/main" />
+        <Copy SourceFiles="@(MainPage)" DestinationFolder="StaticViews/main/%(RecursiveDir)" />
     </Target>
 
 </Project>

@@ -1,32 +1,27 @@
-﻿using Microsoft.Extensions.Logging;
-using ScrapperCore.Utilities;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ScrapperCore.Controllers.View;
 
+[ApiController]
+// ReSharper disable once RouteTemplates.ControllerRouteParameterIsNotPassedToMethods
+[Route("/{**page}")]
 public class MainController : HTMLController
 {
-    public MainController(ILogger<MainController> logger, ScrapperConfig config) : base(logger, config)
+    public MainController(ILogger<MainController> logger) : base(logger)
     {
             
     }
 
     protected override void SetupRouter()
     {
-        // So why not serve static? Because I need a way to serve my own routes.
-        // Even though ASP.NET Core can do that too. Oh well.
         Router.Clear();
             
         // HTML Routes
-        Router.Add("", "StaticViews/views/index.html");
-        Router.Add("home", "StaticViews/views/index.html");
+        Router.Add("", "StaticViews/main/index.html");
+        Router.Add("home", "StaticViews/main/index.html");
 
-        // Holy crap icon stuff
-        AddFolderToRouter("", "StaticViews/img");
-
-        // All other files
-        // Do not include StaticViews/views as that picks up student-test
-        AddFolderToRouter("img", "StaticViews/img");
-        AddFolderToRouter("js", "StaticViews/js");
-        AddFolderToRouter("css", "StaticViews/css");
+        // literally everything else
+        AddFolderToRouter("", "StaticViews/main");
     }
 }

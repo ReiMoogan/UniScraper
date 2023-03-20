@@ -74,7 +74,7 @@ public class Startup
             builder.AddPolicy(name: "UniScraperPolicy",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
+                    policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:38559", "https://localhost:38559")
                         .AllowAnyMethod()
                         .AllowAnyHeader();
                 });
