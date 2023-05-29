@@ -110,10 +110,8 @@ public static class UpdateUCMClasses
 
         try
         {
-            await connection.ExecuteAsync(
-                "EXEC [UniScraper].[UCM].[MergeUpload];");
-            await connection.ExecuteAsync( // No way you're SQL injecting an integer.
-                $"EXEC [UCM].[UpdateAPIForTerm] @term = {term};");
+            await connection.ExecuteAsync("EXEC [UniScraper].[UCM].[MergeUpload];");
+            await connection.ExecuteAsync("EXEC [UCM].[UpdateAPIForTerm] @term = @Term;", new { Term = term });
             Console.WriteLine($"Merged data in {stopwatch.Elapsed.Seconds}s...");
             stopwatch.Restart();
             

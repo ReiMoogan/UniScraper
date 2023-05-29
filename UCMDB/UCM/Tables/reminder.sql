@@ -5,8 +5,10 @@
     [for_waitlist] BIT          CONSTRAINT [DF_reminder_for_waitlist] DEFAULT ((0)) NULL,
     [triggered]    BIT          CONSTRAINT [DF_reminder_triggered] DEFAULT ((0)) NULL,
     CONSTRAINT [CK_reminder] CHECK ([min_trigger]>=(1)),
-    CONSTRAINT [FK_reminder_class] FOREIGN KEY ([class_id]) REFERENCES [UCM].[class] ([id])
+    CONSTRAINT [FK_reminder_class] FOREIGN KEY ([class_id]) REFERENCES [UCM].[class] ([id]) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
 
 
 

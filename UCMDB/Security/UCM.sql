@@ -10,6 +10,8 @@
 
 
 
+
+
 GO
 GRANT UPDATE
     ON SCHEMA::[UCM] TO [cow];

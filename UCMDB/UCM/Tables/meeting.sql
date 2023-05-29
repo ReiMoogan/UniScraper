@@ -13,8 +13,12 @@
     [hours_per_week]       REAL         DEFAULT ((0.0)) NOT NULL,
     [in_session]           TINYINT      DEFAULT ((0)) NOT NULL,
     [meeting_type]         TINYINT      DEFAULT ((1)) NOT NULL,
-    CONSTRAINT [FK_meeting_class] FOREIGN KEY ([class_id]) REFERENCES [UCM].[class] ([id])
+    [id]                   INT          IDENTITY (1, 1) NOT NULL,
+    CONSTRAINT [PK_meeting_id] PRIMARY KEY CLUSTERED ([id] ASC),
+    CONSTRAINT [FK_meeting_class] FOREIGN KEY ([class_id]) REFERENCES [UCM].[class] ([id]) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
 
 
 

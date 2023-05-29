@@ -1,5 +1,5 @@
 ﻿CREATE TABLE [UCM].[v1api] (
-    [crn]            INT             NULL,
+    [crn]            INT             NOT NULL,
     [subject]        VARCHAR (32)    NULL,
     [course_id]      VARCHAR (16)    NULL,
     [course_name]    VARCHAR (128)   NULL,
@@ -12,7 +12,7 @@
     [instructor]     NVARCHAR (4000) NULL,
     [lecture_crn]    VARCHAR (8)     NULL,
     [attached_crn]   VARCHAR (8)     NULL,
-    [term]           INT             NULL,
+    [term]           INT             NOT NULL,
     [capacity]       SMALLINT        NULL,
     [enrolled]       SMALLINT        NULL,
     [available]      SMALLINT        NULL,
@@ -24,4 +24,21 @@
     [simple_name]    VARCHAR (10)    NULL,
     [linked_courses] NVARCHAR (MAX)  NULL
 );
+
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_term]
+    ON [UCM].[v1api]([term] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_crn]
+    ON [UCM].[v1api]([crn] ASC, [term] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_class]
+    ON [UCM].[v1api]([crn] ASC, [term] ASC, [type] ASC);
 

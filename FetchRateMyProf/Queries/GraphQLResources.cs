@@ -21,7 +21,7 @@ internal static class GraphQLResources
     private const string Credentials = $"{Username}:{Password}";
     private static readonly string BasicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes(Credentials));
     
-    internal static Dictionary<string, string> GraphQLQueries;
+    internal static readonly Dictionary<string, string> GraphQLQueries;
 
     static GraphQLResources()
     {

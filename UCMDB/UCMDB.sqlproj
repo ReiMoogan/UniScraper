@@ -90,10 +90,11 @@
     <Build Include="UCM\Stored Procedures\MergeLinkedCourses.sql" />
     <Build Include="UCM\Stored Procedures\MergeRMP.sql" />
     <Build Include="UCM\Stored Procedures\MergeUpload.sql" />
-    <Build Include="UCM\Stored Procedures\UpdateAPI.sql" />
     <Build Include="UCM\Stored Procedures\GetCourses.sql" />
     <Build Include="UCM\Stored Procedures\PostMergeDescription.sql" />
     <Build Include="Security\UCM.sql" />
     <Build Include="FullTextIndexes.sql" />
+    <Build Include="UCM\Stored Procedures\UpdateAPIForTerm.sql" />
+    <Build Include="UCM\Stored Procedures\UpdateAPIAllTerms.sql" />
   </ItemGroup>
 </Project>
