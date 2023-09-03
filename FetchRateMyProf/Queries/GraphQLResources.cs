@@ -53,7 +53,6 @@ internal static class GraphQLResources
         var message = new HttpRequestMessage(HttpMethod.Post, Url);
         message.Headers.Authorization = new AuthenticationHeaderValue("Basic", BasicAuth);
         message.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json"));
-        message.Headers.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json"));
         message.Content = new StringContent(JsonConvert.SerializeObject(new
         {
             query, variables
